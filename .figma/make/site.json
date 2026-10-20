@@ -1,0 +1,10 @@
+{
+  "description": "Delivers a responsive design system interface enabling designers and developers to create consistent, scalable UI components efficiently across projects.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
