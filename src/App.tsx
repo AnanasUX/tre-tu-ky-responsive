@@ -1,6 +1,39 @@
-import { FormEvent, ReactNode, useEffect, useRef, useState } from "react"
+import {
+  createContext,
+  FormEvent,
+  ReactNode,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react"
+import {
+  initialLandingPageConfig,
+  LandingPageConfig,
+  LandingSection,
+  loadLandingConfig,
+  STORAGE_KEY,
+} from "./landingPage"
 
-type IconName = "chat" | "heart" | "shield" | "speech" | "skill" | "leaf" | "light" | "balance" | "connect" | "arrow" | "mail" | "phone" | "pin" | "clock" | "profile"
+const LandingConfigContext = createContext<LandingPageConfig>(initialLandingPageConfig)
+const useConfig = () => useContext(LandingConfigContext)
+
+type IconName =
+  | "chat"
+  | "heart"
+  | "shield"
+  | "speech"
+  | "skill"
+  | "leaf"
+  | "light"
+  | "balance"
+  | "connect"
+  | "arrow"
+  | "mail"
+  | "phone"
+  | "pin"
+  | "clock"
+  | "profile"
 
 const iconPaths: Record<IconName, ReactNode> = {
   chat: <path d="M7 17.5 3.5 20v-4A8 8 0 1 1 7 17.5Z" />,
@@ -92,11 +125,12 @@ function Icon({ name, size = 22 }: { name: IconName; size?: number }) {
 }
 
 function Logo({ light = false }: { light?: boolean }) {
+  const config = useConfig()
   return (
     <div className={`logo ${light ? "logo--light" : ""}`}>
       <span className="logo__mark" aria-hidden="true" />
       <span className="logo__copy">
-        <strong>Lớp Can Thiệp Chuyên Biệt Cô Hương</strong>
+        <strong>{config.siteName || "Lớp Can Thiệp Chuyên Biệt Cô Hương"}</strong>
       </span>
     </div>
   )
@@ -145,141 +179,12 @@ function SectionTitle({
   )
 }
 
-const supportAreas = [
-  {
-    icon: "speech" as const,
-    title: "Giao tiếp / Ngôn ngữ",
-    text: "Trẻ chậm nói, khó diễn đạt, ít tương tác hoặc cần phát triển kỹ năng giao tiếp.",
-  },
-  {
-    icon: "skill" as const,
-    title: "Kỹ năng xã hội",
-    text: "Tăng khả năng kết nối, hợp tác, làm việc nhóm và thích nghi trong môi trường mới.",
-  },
-  {
-    icon: "leaf" as const,
-    title: "Tự lập",
-    text: "Hỗ trợ trẻ hình thành thói quen, kỹ năng tự chăm sóc và chủ động trong sinh hoạt.",
-  },
-  {
-    icon: "light" as const,
-    title: "Nhận thức / Học tập",
-    text: "Khơi gợi hứng thú học hỏi, tăng tập trung và xây dựng chiến lược học phù hợp.",
-  },
-  {
-    icon: "balance" as const,
-    title: "Điều hòa cảm xúc",
-    text: "Nhận biết, gọi tên và thể hiện cảm xúc theo cách an toàn, tích cực.",
-  },
-  {
-    icon: "connect" as const,
-    title: "Học qua chơi",
-    text: "Thiết kế hoạt động vui chơi có mục tiêu, phù hợp nhịp độ và sở thích của trẻ.",
-  },
-]
-
-const processSteps = [
-  {
-    number: "01",
-    title: "Tiếp nhận thông tin gia đình",
-    text: "Lắng nghe nhu cầu, bối cảnh và những băn khoăn ban đầu của phụ huynh.",
-  },
-  {
-    number: "02",
-    title: "Trao đổi nhu cầu",
-    text: "Cùng gia đình xác định điều cần ưu tiên và kết quả mong đợi.",
-  },
-  {
-    number: "03",
-    title: "Xây dựng mục tiêu",
-    text: "Lựa chọn mục tiêu thực tế, có thể theo dõi và phù hợp với trẻ.",
-  },
-  {
-    number: "04",
-    title: "Thực hiện / Theo dõi",
-    text: "Đồng hành qua hoạt động, ghi nhận tiến triển và trao đổi thường xuyên.",
-  },
-  {
-    number: "05",
-    title: "Trao đổi định kỳ",
-    text: "Cập nhật, điều chỉnh kế hoạch và thống nhất bước tiếp theo cùng gia đình.",
-  },
-]
-
-type TeamMember = {
-  name: string
-  role: string
-  bio: string
-  image?: string
-  imageAlt?: string
+function getSection(config: LandingPageConfig, id: string): LandingSection | undefined {
+  return config.sections.find((s) => s.id === id)
 }
 
-// Thêm một object vào danh sách này để tạo hồ sơ giáo viên mới.
-// Khi có ảnh thật, điền đường dẫn `image` và mô tả ảnh vào `imageAlt`.
-const specialists: TeamMember[] = [
-  {
-    name: "Tên giáo viên",
-    role: "Chuyên môn / vai trò",
-    bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ.",
-  },
-  {
-    name: "Tên giáo viên",
-    role: "Chuyên môn / vai trò",
-    bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ.",
-  },
-  {
-    name: "Tên giáo viên",
-    role: "Chuyên môn / vai trò",
-    bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ.",
-  },
-  {
-    name: "Tên giáo viên",
-    role: "Chuyên môn / vai trò",
-    bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ.",
-  },
-]
-
-const resources = [
-  {
-    image: "./images/classroom-detail.jpg",
-    tag: "Không gian",
-    title: "5 cách bố trí góc học tập cho trẻ",
-    text: "Gợi ý đơn giản để tạo một góc học tập yên tĩnh, thân thiện và dễ duy trì tại nhà.",
-  },
-  {
-    image: "./images/family-3.jpg",
-    tag: "Đồng hành",
-    title: "Kỹ năng chuyển giao về nhà",
-    text: "Cùng trẻ tiếp tục kỹ năng đã học qua những hoạt động gần gũi hàng ngày.",
-  },
-  {
-    image: "./images/family-1.jpg",
-    tag: "Cảm xúc",
-    title: "Những điều nên trao đổi khi đón trẻ",
-    text: "Một vài câu hỏi mở giúp cha mẹ hiểu ngày của con mà không tạo áp lực.",
-  },
-]
-
-const faqs = [
-  [
-    "Tôi có thể trao đổi với chuyên viên như thế nào?",
-    "Trung tâm cần xác minh phương thức trao đổi, tần suất cập nhật và cách thức phối hợp với gia đình.",
-  ],
-  [
-    "Phụ huynh có thể tham gia trong quá trình hỗ trợ không?",
-    "Hình thức tham gia của phụ huynh cần được thống nhất theo từng mục tiêu và xác nhận bởi trung tâm.",
-  ],
-  [
-    "Thời lượng và lịch hỗ trợ được sắp xếp như thế nào?",
-    "Thời lượng, lịch và hình thức hỗ trợ chưa được công bố trong bản thiết kế này. Vui lòng chờ thông tin chính thức.",
-  ],
-  [
-    "Thông tin gia đình được sử dụng ra sao?",
-    "Chính sách quyền riêng tư và quy trình lưu trữ dữ liệu cần được duyệt trước khi biểu mẫu được kết nối vận hành.",
-  ],
-]
-
 function Header() {
+  const config = useConfig()
   const [open, setOpen] = useState(false)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
 
@@ -304,7 +209,7 @@ function Header() {
           <Logo />
         </a>
         <a className="button button--primary header__cta" href="#contact">
-          Đăng ký tư vấn
+          {config.consultationLabel || "Đăng ký tư vấn"}
         </a>
         <button
           aria-expanded={open}
@@ -324,30 +229,22 @@ function Header() {
           className={`container nav ${open ? "nav--open" : ""}`}
           aria-label="Điều hướng chính"
         >
-          <a className="nav__active" href="#top" onClick={() => setOpen(false)}>
-            Trang chủ
-          </a>
-          <a href="#about" onClick={() => setOpen(false)}>
-            Giới thiệu
-          </a>
-          <a href="#process" onClick={() => setOpen(false)}>
-            Chương trình can thiệp
-          </a>
-          <a href="#team" onClick={() => setOpen(false)}>
-            Đội ngũ
-          </a>
-          <a href="#resources" onClick={() => setOpen(false)}>
-            Góc phụ huynh
-          </a>
-          <a href="#contact" onClick={() => setOpen(false)}>
-            Liên hệ
-          </a>
+          {config.navigation.map((item, index) => (
+            <a
+              key={`${item.path}-${index}`}
+              className={index === 0 ? "nav__active" : ""}
+              href={item.path}
+              onClick={() => setOpen(false)}
+            >
+              {item.label}
+            </a>
+          ))}
           <a
             className="button button--primary nav__cta"
             href="#contact"
             onClick={() => setOpen(false)}
           >
-            Đăng ký tư vấn
+            {config.consultationLabel || "Đăng ký tư vấn"}
           </a>
         </nav>
       </div>
@@ -356,25 +253,32 @@ function Header() {
 }
 
 function Hero() {
+  const config = useConfig()
+  const section = getSection(config, "hero")
+  if (section && !section.enabled) return null
+
+  const eyebrow = section?.eyebrow ?? "Thiết kế một hành trình phù hợp với trẻ"
+  const title = section?.title ?? "Tôn trọng từng nhịp phát triển, đồng hành cùng gia đình"
+  const description =
+    section?.description ??
+    "Không gian kết nối dành cho trẻ và phụ huynh, nơi mỗi khác biệt được lắng nghe, mỗi bước tiến được ghi nhận, và hành trình phát triển được xây dựng bằng sự thấu hiểu."
+  const primaryAction = section?.primaryAction ?? "Đăng ký tư vấn"
+  const secondaryAction = section?.secondaryAction ?? "Tìm hiểu phương pháp"
+  const image = section?.image && section.image.startsWith("./") ? section.image : "./images/classroom-main.jpg"
+
   return (
     <main className="hero" id="top">
       <div className="container hero__grid">
         <div className="hero__content">
-          <span className="eyebrow">
-            Thiết kế một hành trình phù hợp với trẻ
-          </span>
-          <h1>Tôn trọng từng nhịp phát triển, đồng hành cùng gia đình</h1>
-          <p>
-            Không gian kết nối dành cho trẻ và phụ huynh, nơi mỗi khác biệt được
-            lắng nghe, mỗi bước tiến được ghi nhận, và hành trình phát triển
-            được xây dựng bằng sự thấu hiểu.
-          </p>
+          <span className="eyebrow">{eyebrow}</span>
+          <h1>{title}</h1>
+          <p>{description}</p>
           <div className="hero__actions">
             <a className="button button--primary" href="#contact">
-              Đăng ký tư vấn
+              {primaryAction}
             </a>
             <a className="button button--secondary" href="#process">
-              Tìm hiểu phương pháp
+              {secondaryAction}
             </a>
           </div>
           <div className="hero__notes">
@@ -385,7 +289,7 @@ function Hero() {
         </div>
         <figure className="hero__visual">
           <img
-            src="./images/classroom-main.jpg"
+            src={image}
             alt="Không gian học tập ấm áp với vật liệu gỗ tự nhiên"
           />
           <figcaption>
@@ -398,7 +302,16 @@ function Hero() {
 }
 
 function Mission() {
-  const cards = [
+  const config = useConfig()
+  const section = getSection(config, "mission")
+  if (section && !section.enabled) return null
+
+  const title = section?.title ?? "Sứ mệnh và môi trường hỗ trợ"
+  const description =
+    section?.description ??
+    "Chúng tôi xây dựng sự an tâm trước, hiểu nhu cầu trước, rồi mới lựa chọn hướng hỗ trợ. Thiết kế dựa trên thế mạnh của trẻ và khả năng ứng dụng trong chính nhịp sống gia đình."
+
+  const defaultCards = [
     {
       icon: "chat" as const,
       title: "Tôn trọng từng nhịp phát triển",
@@ -415,16 +328,23 @@ function Mission() {
       text: "Thông tin được tôn trọng, trao đổi minh bạch và chỉ sử dụng cho mục đích hỗ trợ.",
     },
   ]
+
+  const icons: IconName[] = ["chat", "heart", "shield", "leaf", "light"]
+  const cards = section?.items && section.items.length > 0
+    ? section.items.map((item, idx) => ({
+        icon: icons[idx % icons.length],
+        title: item.title,
+        text: item.description ?? "",
+      }))
+    : defaultCards
+
   return (
     <section className="section section--tint" id="about">
       <div className="container">
-        <SectionTitle
-          title="Sứ mệnh và môi trường hỗ trợ"
-          description="Chúng tôi xây dựng sự an tâm trước, hiểu nhu cầu trước, rồi mới lựa chọn hướng hỗ trợ. Thiết kế dựa trên thế mạnh của trẻ và khả năng ứng dụng trong chính nhịp sống gia đình."
-        />
+        <SectionTitle title={title} description={description} />
         <div className="mission-grid">
-          {cards.map((card) => (
-            <article className="mission-card" key={card.title}>
+          {cards.map((card, idx) => (
+            <article className="mission-card" key={`${card.title}-${idx}`}>
               <span className="icon-box">
                 <Icon name={card.icon} />
               </span>
@@ -439,18 +359,46 @@ function Mission() {
 }
 
 function Areas() {
+  const config = useConfig()
+  const section = getSection(config, "support")
+  if (section && !section.enabled) return null
+
+  const eyebrow = section?.eyebrow ?? "Hiểu trẻ để lựa chọn hướng đồng hành phù hợp"
+  const title = section?.title ?? "Lĩnh vực hỗ trợ tham khảo"
+  const description =
+    section?.description ??
+    "Nội dung dưới đây chỉ mang tính tham khảo. Trong trao đổi ban đầu, chúng tôi cùng gia đình nhìn vào nhu cầu thực tế thay vì gắn nhãn cho trẻ."
+
+  const defaultSupportAreas = [
+    { icon: "speech" as const, title: "Giao tiếp / Ngôn ngữ", text: "Trẻ chậm nói, khó diễn đạt, ít tương tác hoặc cần phát triển kỹ năng giao tiếp." },
+    { icon: "skill" as const, title: "Kỹ năng xã hội", text: "Tăng khả năng kết nối, hợp tác, làm việc nhóm và thích nghi trong môi trường mới." },
+    { icon: "leaf" as const, title: "Tự lập", text: "Hỗ trợ trẻ hình thành thói quen, kỹ năng tự chăm sóc và chủ động trong sinh hoạt." },
+    { icon: "light" as const, title: "Nhận thức / Học tập", text: "Khơi gợi hứng thú học hỏi, tăng tập trung và xây dựng chiến lược học phù hợp." },
+    { icon: "balance" as const, title: "Điều hòa cảm xúc", text: "Nhận biết, gọi tên và thể hiện cảm xúc theo cách an toàn, tích cực." },
+    { icon: "connect" as const, title: "Học qua chơi", text: "Thiết kế hoạt động vui chơi có mục tiêu, phù hợp nhịp độ và sở thích của trẻ." },
+  ]
+
+  const areaIcons: IconName[] = ["speech", "skill", "leaf", "light", "balance", "connect"]
+  const areas = section?.items && section.items.length > 0
+    ? section.items.map((item, idx) => ({
+        icon: areaIcons[idx % areaIcons.length],
+        title: item.title,
+        text: item.description ?? "",
+      }))
+    : defaultSupportAreas
+
   return (
     <section className="section" id="areas">
       <div className="container">
         <SectionTitle
-          eyebrow="Hiểu trẻ để lựa chọn hướng đồng hành phù hợp"
-          title="Lĩnh vực hỗ trợ tham khảo"
-          description="Nội dung dưới đây chỉ mang tính tham khảo. Trong trao đổi ban đầu, chúng tôi cùng gia đình nhìn vào nhu cầu thực tế thay vì gắn nhãn cho trẻ."
+          eyebrow={eyebrow}
+          title={title}
+          description={description}
         />
         <div className="areas-grid">
-          {supportAreas.map((area, index) => (
-            <article className="area-card" key={area.title}>
-              <span className={`icon-box icon-box--c${index + 1}`}>
+          {areas.map((area, index) => (
+            <article className="area-card" key={`${area.title}-${index}`}>
+              <span className={`icon-box icon-box--c${(index % 6) + 1}`}>
                 <Icon name={area.icon} />
               </span>
               <h3>{area.title}</h3>
@@ -464,18 +412,44 @@ function Areas() {
 }
 
 function Process() {
+  const config = useConfig()
+  const section = getSection(config, "process")
+  if (section && !section.enabled) return null
+
+  const eyebrow = section?.eyebrow ?? "Một hành trình rõ ràng, linh hoạt và có thể điều chỉnh"
+  const title = section?.title ?? "Quy trình tham khảo"
+  const description =
+    section?.description ??
+    "Gia đình được trao đổi xuyên suốt. Chúng tôi bắt đầu từ nhu cầu thực tế, đồng thuận mục tiêu và theo dõi những thay đổi nhỏ nhất."
+
+  const defaultSteps = [
+    { number: "01", title: "Tiếp nhận thông tin gia đình", text: "Lắng nghe nhu cầu, bối cảnh và những băn khoăn ban đầu của phụ huynh." },
+    { number: "02", title: "Trao đổi nhu cầu", text: "Cùng gia đình xác định điều cần ưu tiên và kết quả mong đợi." },
+    { number: "03", title: "Xây dựng mục tiêu", text: "Lựa chọn mục tiêu thực tế, có thể theo dõi và phù hợp với trẻ." },
+    { number: "04", title: "Thực hiện / Theo dõi", text: "Đồng hành qua hoạt động, ghi nhận tiến triển và trao đổi thường xuyên." },
+    { number: "05", title: "Trao đổi định kỳ", text: "Cập nhật, điều chỉnh kế hoạch và thống nhất bước tiếp theo cùng gia đình." },
+  ]
+
+  const steps = section?.items && section.items.length > 0
+    ? section.items.map((item, idx) => ({
+        number: item.meta || String(idx + 1).padStart(2, "0"),
+        title: item.title,
+        text: item.description ?? "",
+      }))
+    : defaultSteps
+
   return (
     <section className="section section--soft" id="process">
       <div className="container">
         <SectionTitle
-          eyebrow="Một hành trình rõ ràng, linh hoạt và có thể điều chỉnh"
-          title="Quy trình tham khảo"
-          description="Gia đình được trao đổi xuyên suốt. Chúng tôi bắt đầu từ nhu cầu thực tế, đồng thuận mục tiêu và theo dõi những thay đổi nhỏ nhất."
+          eyebrow={eyebrow}
+          title={title}
+          description={description}
         />
         <div className="process-grid">
-          {processSteps.map((step, index) => (
-            <article className="process-card" key={step.number}>
-              <span className={`step-number step-number--${index + 1}`}>
+          {steps.map((step, index) => (
+            <article className="process-card" key={`${step.number}-${index}`}>
+              <span className={`step-number step-number--${(index % 5) + 1}`}>
                 {step.number}
               </span>
               <h3>{step.title}</h3>
@@ -489,29 +463,47 @@ function Process() {
 }
 
 function Team() {
+  const config = useConfig()
+  const section = getSection(config, "team")
+  if (section && !section.enabled) return null
+
+  const eyebrow = section?.eyebrow ?? "Cần trung tâm xác minh hồ sơ"
+  const title = section?.title ?? "Đội ngũ giáo viên"
+  const description =
+    section?.description ??
+    "Mỗi hồ sơ có sẵn vị trí cho ảnh, tên, chuyên môn và phần giới thiệu. Thông tin chính thức sẽ được cập nhật sau khi trung tâm xác minh."
+
+  const defaultTeam = [
+    { name: "Tên giáo viên", role: "Chuyên môn / vai trò", bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ." },
+    { name: "Tên giáo viên", role: "Chuyên môn / vai trò", bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ." },
+    { name: "Tên giáo viên", role: "Chuyên môn / vai trò", bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ." },
+    { name: "Tên giáo viên", role: "Chuyên môn / vai trò", bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ." },
+  ]
+
+  const members = section?.items && section.items.length > 0
+    ? section.items.map((item) => ({
+        name: item.title,
+        role: item.meta || "Chuyên môn / vai trò",
+        bio: item.description ?? "",
+      }))
+    : defaultTeam
+
   return (
     <section className="section section--team" id="team">
       <div className="container">
         <SectionTitle
-          eyebrow="Cần trung tâm xác minh hồ sơ"
-          title="Đội ngũ giáo viên"
-          description="Mỗi hồ sơ có sẵn vị trí cho ảnh, tên, chuyên môn và phần giới thiệu. Thông tin chính thức sẽ được cập nhật sau khi trung tâm xác minh."
+          eyebrow={eyebrow}
+          title={title}
+          description={description}
         />
         <div className="team-grid">
-          {specialists.map((item, index) => (
+          {members.map((item, index) => (
             <article className="profile-card" key={`${item.name}-${index}`}>
               <div className="profile-card__portrait">
-                {item.image ? (
-                  <img
-                    src={item.image}
-                    alt={item.imageAlt ?? `Ảnh chân dung ${item.name}`}
-                  />
-                ) : (
-                  <div className="profile-card__placeholder" aria-hidden="true">
-                    <Icon name="profile" size={52} />
-                    <span>Thêm ảnh chân dung</span>
-                  </div>
-                )}
+                <div className="profile-card__placeholder" aria-hidden="true">
+                  <Icon name="profile" size={52} />
+                  <span>Thêm ảnh chân dung</span>
+                </div>
               </div>
               <div className="profile-card__content">
                 <h3>{item.name}</h3>
@@ -528,13 +520,19 @@ function Team() {
 }
 
 function Space() {
+  const config = useConfig()
+  const section = getSection(config, "gallery")
+  if (section && !section.enabled) return null
+
+  const title = section?.title ?? "Không gian học tập"
+  const description =
+    section?.description ??
+    "Các hình ảnh dưới đây chỉ minh hoạ định hướng không gian. Cần bổ sung ảnh thực tế được phép sử dụng trước khi triển khai."
+
   return (
-    <section className="section section--tint">
+    <section className="section section--tint" id="gallery">
       <div className="container">
-        <SectionTitle
-          title="Không gian học tập"
-          description="Các hình ảnh dưới đây chỉ minh hoạ định hướng không gian. Cần bổ sung ảnh thực tế được phép sử dụng trước khi triển khai."
-        />
+        <SectionTitle title={title} description={description} />
         <div className="gallery">
           <figure className="gallery__main">
             <img
@@ -564,32 +562,52 @@ function Space() {
 }
 
 function Resources() {
+  const config = useConfig()
+  const section = getSection(config, "resources")
+  if (section && !section.enabled) return null
+
+  const eyebrow = section?.eyebrow ?? "Chủ đề gợi ý · chưa xuất bản"
+  const title = section?.title ?? "Tài nguyên cho phụ huynh"
+  const description =
+    section?.description ??
+    "Các tiêu đề dưới đây là nội dung mẫu. Bài viết chỉ xuất hiện sau khi được xác minh nguồn và duyệt nội dung."
+
+  const defaultResources = [
+    { image: "./images/classroom-detail.jpg", tag: "Không gian", title: "5 cách bố trí góc học tập cho trẻ", text: "Gợi ý đơn giản để tạo một góc học tập yên tĩnh, thân thiện và dễ duy trì tại nhà." },
+    { image: "./images/family-3.jpg", tag: "Đồng hành", title: "Kỹ năng chuyển giao về nhà", text: "Cùng trẻ tiếp tục kỹ năng đã học qua những hoạt động gần gũi hàng ngày." },
+    { image: "./images/family-1.jpg", tag: "Cảm xúc", title: "Những điều nên trao đổi khi đón trẻ", text: "Một vài câu hỏi mở giúp cha mẹ hiểu ngày của con mà không tạo áp lực." },
+  ]
+
+  const fallbackImages = ["./images/classroom-detail.jpg", "./images/family-3.jpg", "./images/family-1.jpg"]
+  const items = section?.items && section.items.length > 0
+    ? section.items.map((item, idx) => ({
+        image: fallbackImages[idx % fallbackImages.length],
+        tag: item.meta || "Tài nguyên",
+        title: item.title,
+        text: item.description ?? "",
+      }))
+    : defaultResources
+
   return (
     <section className="section" id="resources">
       <div className="container">
         <SectionTitle
-          eyebrow="Chủ đề gợi ý · chưa xuất bản"
-          title="Tài nguyên cho phụ huynh"
-          description="Các tiêu đề dưới đây là nội dung mẫu. Bài viết chỉ xuất hiện sau khi được xác minh nguồn và duyệt nội dung."
+          eyebrow={eyebrow}
+          title={title}
+          description={description}
         />
         <div className="card-grid">
-          {resources.map((item) => (
-            <article className="resource-card" key={item.title}>
+          {items.map((item, idx) => (
+            <article className="resource-card" key={`${item.title}-${idx}`}>
               <div className="card-media">
                 <img src={item.image} alt="Hình minh hoạ cho chủ đề bài viết" />
-                <span className="media-note">
-                  Minh hoạ · không phải ảnh thật
-                </span>
+                <span className="media-note">Minh hoạ · không phải ảnh thật</span>
               </div>
               <div>
-                <span className="resource-card__tag">
-                  {item.tag} · chưa xuất bản
-                </span>
+                <span className="resource-card__tag">{item.tag} · chưa xuất bản</span>
                 <h3>{item.title}</h3>
                 <p>{item.text}</p>
-                <span className="text-link text-link--disabled">
-                  Chưa có đường dẫn
-                </span>
+                <span className="text-link text-link--disabled">Chưa có đường dẫn</span>
               </div>
             </article>
           ))}
@@ -600,19 +618,37 @@ function Resources() {
 }
 
 function Faq() {
+  const config = useConfig()
+  const section = getSection(config, "faq")
+  if (section && !section.enabled) return null
+
+  const title = section?.title ?? "Câu hỏi thường gặp"
+  const description =
+    section?.description ??
+    "Một vài thông tin cơ bản trước khi gia đình bắt đầu. Nếu chưa tìm thấy câu trả lời phù hợp, hãy gửi câu hỏi cho chúng tôi."
+
+  const defaultFaqs: [string, string][] = [
+    ["Tôi có thể trao đổi với chuyên viên như thế nào?", "Trung tâm cần xác minh phương thức trao đổi, tần suất cập nhật và cách thức phối hợp với gia đình."],
+    ["Phụ huynh có thể tham gia trong quá trình hỗ trợ không?", "Hình thức tham gia của phụ huynh cần được thống nhất theo từng mục tiêu và xác nhận bởi trung tâm."],
+    ["Thời lượng và lịch hỗ trợ được sắp xếp như thế nào?", "Thời lượng, lịch và hình thức hỗ trợ chưa được công bố trong bản thiết kế này. Vui lòng chờ thông tin chính thức."],
+    ["Thông tin gia đình được sử dụng ra sao?", "Chính sách quyền riêng tư và quy trình lưu trữ dữ liệu cần được duyệt trước khi biểu mẫu được kết nối vận hành."],
+  ]
+
+  const items: [string, string][] = section?.items && section.items.length > 0
+    ? section.items.map((item) => [item.title, item.description ?? ""])
+    : defaultFaqs
+
   const [active, setActive] = useState<number | null>(0)
+
   return (
     <section className="section section--lavender" id="faq">
       <div className="container">
-        <SectionTitle
-          title="Câu hỏi thường gặp"
-          description="Một vài thông tin cơ bản trước khi gia đình bắt đầu. Nếu chưa tìm thấy câu trả lời phù hợp, hãy gửi câu hỏi cho chúng tôi."
-        />
+        <SectionTitle title={title} description={description} />
         <div className="faq-list">
-          {faqs.map(([question, answer], index) => (
+          {items.map(([question, answer], index) => (
             <article
               className={`faq-item ${active === index ? "faq-item--open" : ""}`}
-              key={question}
+              key={`${question}-${index}`}
             >
               <button
                 aria-expanded={active === index}
@@ -634,22 +670,32 @@ function Faq() {
 }
 
 function Contact() {
+  const config = useConfig()
+  const section = getSection(config, "contact")
+  if (section && !section.enabled) return null
+
+  const eyebrow = section?.eyebrow ?? "Bắt đầu bằng một cuộc trò chuyện"
+  const title = section?.title ?? "Trao đổi cùng trung tâm"
+  const description =
+    section?.description ??
+    "Đây là biểu mẫu giao diện tham khảo. Thông tin chỉ nên được gửi khi trung tâm xác nhận kênh tiếp nhận và chính sách quyền riêng tư."
+  const primaryAction = section?.primaryAction ?? "Gửi yêu cầu tư vấn"
+
   const [sent, setSent] = useState(false)
   const [consent, setConsent] = useState(false)
+
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSent(true)
   }
+
   return (
     <section className="contact" id="contact">
       <div className="container contact__grid">
         <div className="contact__copy">
-          <span className="eyebrow">Bắt đầu bằng một cuộc trò chuyện</span>
-          <h2>Trao đổi cùng trung tâm</h2>
-          <p>
-            Đây là biểu mẫu giao diện tham khảo. Thông tin chỉ nên được gửi khi
-            trung tâm xác nhận kênh tiếp nhận và chính sách quyền riêng tư.
-          </p>
+          <span className="eyebrow">{eyebrow}</span>
+          <h2>{title}</h2>
+          <p>{description}</p>
           <div className="notice notice--info">
             <Icon name="chat" size={20} />
             <span>
@@ -689,7 +735,7 @@ function Contact() {
                 <input
                   id="phone"
                   name="phone"
-                  placeholder="Ví dụ: 090 123 4567"
+                  placeholder={config.phone ? `Ví dụ: ${config.phone}` : "Ví dụ: 090 123 4567"}
                   required
                   type="tel"
                 />
@@ -727,7 +773,7 @@ function Contact() {
                 </span>
               </label>
               <Button disabled={!consent} type="submit">
-                Gửi yêu cầu tư vấn
+                {primaryAction}
               </Button>
               <small>
                 Bản mẫu chưa kết nối hệ thống gửi hoặc lưu dữ liệu.
@@ -741,16 +787,20 @@ function Contact() {
 }
 
 function Footer() {
+  const config = useConfig()
+  const section = getSection(config, "footer")
+  if (section && !section.enabled) return null
+
+  const description =
+    section?.description ??
+    "Trang này chỉ là bản thiết kế tham khảo. Nội dung, hình ảnh, đội ngũ, bài viết và thông tin liên hệ cần được trung tâm xác minh trước khi triển khai."
+
   return (
     <footer className="footer">
       <div className="container footer__grid">
         <div className="footer__about">
           <Logo light />
-          <p>
-            Trang này chỉ là bản thiết kế tham khảo. Nội dung, hình ảnh, đội ngũ,
-            bài viết và thông tin liên hệ cần được trung tâm xác minh trước khi
-            triển khai.
-          </p>
+          <p>{description}</p>
         </div>
         <div>
           <h3>Khám phá</h3>
@@ -769,15 +819,43 @@ function Footer() {
       </div>
       <div className="container footer__bottom">
         <span>Bản thiết kế tham khảo · không phải website vận hành</span>
-        <span>Nội dung dự thảo · cần xác minh nội dung</span>
+        <span>{config.address || "Hà Nội, Việt Nam"} · {config.phone || "090 123 4567"}</span>
       </div>
     </footer>
   )
 }
 
 export default function App() {
+  const [config, setConfig] = useState<LandingPageConfig>(loadLandingConfig)
+
+  useEffect(() => {
+    function handleStorage(e: StorageEvent) {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        try {
+          setConfig(loadLandingConfig())
+        } catch {}
+      }
+    }
+    window.addEventListener("storage", handleStorage)
+
+    let channel: BroadcastChannel | null = null
+    try {
+      channel = new BroadcastChannel("aurora-cms-sync")
+      channel.onmessage = (event) => {
+        if (event.data?.type === "config_updated") {
+          setConfig(loadLandingConfig())
+        }
+      }
+    } catch {}
+
+    return () => {
+      window.removeEventListener("storage", handleStorage)
+      channel?.close()
+    }
+  }, [])
+
   return (
-    <>
+    <LandingConfigContext.Provider value={config}>
       <Header />
       <Hero />
       <Mission />
@@ -789,6 +867,6 @@ export default function App() {
       <Faq />
       <Contact />
       <Footer />
-    </>
+    </LandingConfigContext.Provider>
   )
 }
