@@ -1,6 +1,6 @@
 import { FormEvent, ReactNode, useEffect, useRef, useState } from "react"
 
-type IconName = "chat" | "heart" | "shield" | "speech" | "skill" | "leaf" | "light" | "balance" | "connect" | "arrow" | "mail" | "phone" | "pin" | "clock"
+type IconName = "chat" | "heart" | "shield" | "speech" | "skill" | "leaf" | "light" | "balance" | "connect" | "arrow" | "mail" | "phone" | "pin" | "clock" | "profile"
 
 const iconPaths: Record<IconName, ReactNode> = {
   chat: <path d="M7 17.5 3.5 20v-4A8 8 0 1 1 7 17.5Z" />,
@@ -66,6 +66,12 @@ const iconPaths: Record<IconName, ReactNode> = {
     <>
       <circle cx="12" cy="12" r="9" />
       <path d="M12 7v5l3 2" />
+    </>
+  ),
+  profile: (
+    <>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4.5 21a7.5 7.5 0 0 1 15 0" />
     </>
   ),
 }
@@ -200,21 +206,36 @@ const processSteps = [
   },
 ]
 
-const specialists = [
+type TeamMember = {
+  name: string
+  role: string
+  bio: string
+  image?: string
+  imageAlt?: string
+}
+
+// Thêm một object vào danh sách này để tạo hồ sơ giáo viên mới.
+// Khi có ảnh thật, điền đường dẫn `image` và mô tả ảnh vào `imageAlt`.
+const specialists: TeamMember[] = [
   {
-    image: "./images/family-1.jpg",
-    title: "Hồ sơ chuyên viên · chờ xác minh",
-    text: "Vai trò, kinh nghiệm và phương pháp làm việc sẽ được cập nhật sau khi trung tâm xác minh.",
+    name: "Tên giáo viên",
+    role: "Chuyên môn / vai trò",
+    bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ.",
   },
   {
-    image: "./images/family-2.jpg",
-    title: "Hồ sơ chuyên viên · chờ xác minh",
-    text: "Thông tin chuyên môn chỉ được công bố khi có nội dung chính thức từ trung tâm.",
+    name: "Tên giáo viên",
+    role: "Chuyên môn / vai trò",
+    bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ.",
   },
   {
-    image: "./images/family-3.jpg",
-    title: "Hồ sơ chuyên viên · chờ xác minh",
-    text: "Hình ảnh hiện tại chỉ dùng minh hoạ bố cục, không đại diện cho chuyên viên thật.",
+    name: "Tên giáo viên",
+    role: "Chuyên môn / vai trò",
+    bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ.",
+  },
+  {
+    name: "Tên giáo viên",
+    role: "Chuyên môn / vai trò",
+    bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ.",
   },
 ]
 
@@ -469,29 +490,34 @@ function Process() {
 
 function Team() {
   return (
-    <section className="section" id="team">
+    <section className="section section--team" id="team">
       <div className="container">
         <SectionTitle
           eyebrow="Cần trung tâm xác minh hồ sơ"
-          title="Đội ngũ"
-          description="Hình minh hoạ chỉ dùng cho bản mẫu, không đại diện cho chuyên viên. Hồ sơ chỉ được công bố sau khi có xác minh và quyền sử dụng."
+          title="Đội ngũ giáo viên"
+          description="Mỗi hồ sơ có sẵn vị trí cho ảnh, tên, chuyên môn và phần giới thiệu. Thông tin chính thức sẽ được cập nhật sau khi trung tâm xác minh."
         />
-        <div className="card-grid">
-          {specialists.map((item) => (
-            <article className="profile-card" key={item.image}>
-              <div className="card-media">
-                <img
-                  src={item.image}
-                  alt="Hình minh hoạ người lớn đồng hành cùng trẻ"
-                />
-                <span className="media-note">
-                  Minh hoạ · không phải ảnh thật
-                </span>
+        <div className="team-grid">
+          {specialists.map((item, index) => (
+            <article className="profile-card" key={`${item.name}-${index}`}>
+              <div className="profile-card__portrait">
+                {item.image ? (
+                  <img
+                    src={item.image}
+                    alt={item.imageAlt ?? `Ảnh chân dung ${item.name}`}
+                  />
+                ) : (
+                  <div className="profile-card__placeholder" aria-hidden="true">
+                    <Icon name="profile" size={52} />
+                    <span>Thêm ảnh chân dung</span>
+                  </div>
+                )}
               </div>
-              <div>
-                <h3>{item.title}</h3>
-                <p>{item.text}</p>
-                <span className="status-label">Chờ xác minh</span>
+              <div className="profile-card__content">
+                <h3>{item.name}</h3>
+                <span className="profile-card__role">{item.role}</span>
+                <p>{item.bio}</p>
+                <span className="status-label">Chờ cập nhật</span>
               </div>
             </article>
           ))}
