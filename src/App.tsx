@@ -17,6 +17,7 @@ import {
 } from "./landingPage"
 import Lenis from "lenis"
 import "lenis/dist/lenis.css"
+import { getHeatmapTracker } from "./analytics/heatmapTracker"
 
 const LandingConfigContext = createContext<LandingPageConfig>(initialLandingPageConfig)
 const useConfig = () => useContext(LandingConfigContext)
@@ -38,8 +39,15 @@ type IconName =
   | "pin"
   | "clock"
   | "profile"
+  | "facebook"
 
 const iconPaths: Record<IconName, ReactNode> = {
+  facebook: (
+    <path
+      d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3V2Z"
+      fill="currentColor"
+    />
+  ),
   chat: <path d="M7 17.5 3.5 20v-4A8 8 0 1 1 7 17.5Z" />,
   heart: (
     <path d="M20.8 5.8c0 5.5-8.8 11.4-8.8 11.4S3.2 11.3 3.2 5.8A4.5 4.5 0 0 1 12 4.4a4.5 4.5 0 0 1 8.8 1.4Z" />
@@ -155,12 +163,14 @@ function Button({
   type = "button",
   onClick,
   disabled = false,
+  heatmapId,
 }: {
   children: ReactNode
   variant?: "primary" | "secondary"
   type?: "button" | "submit"
   onClick?: () => void
   disabled?: boolean
+  heatmapId?: string
 }) {
   return (
     <button
@@ -168,6 +178,7 @@ function Button({
       disabled={disabled}
       onClick={onClick}
       type={type}
+      data-heatmap-id={heatmapId}
     >
       {children}
     </button>
@@ -267,6 +278,7 @@ function Header({ scrolled }: { scrolled: boolean }) {
           <a
             className="button button--primary nav__cta"
             href="#contact"
+            data-heatmap-id="cta-nav-consult"
             onClick={(e) => {
               e.preventDefault()
               scrollToHash("#contact")
@@ -279,6 +291,7 @@ function Header({ scrolled }: { scrolled: boolean }) {
         <a
           className="button button--primary header__cta"
           href="#contact"
+          data-heatmap-id="cta-header-consult"
           onClick={(e) => {
             e.preventDefault()
             scrollToHash("#contact")
@@ -329,6 +342,7 @@ function Hero() {
             <a
               className="button button--primary"
               href="#contact"
+              data-heatmap-id="cta-hero-consult"
               onClick={(e) => {
                 e.preventDefault()
                 const lenis = (window as any).__lenis
@@ -341,6 +355,7 @@ function Hero() {
             <a
               className="button button--secondary"
               href="#process"
+              data-heatmap-id="cta-hero-process"
               onClick={(e) => {
                 e.preventDefault()
                 const lenis = (window as any).__lenis
@@ -905,7 +920,7 @@ function Contact() {
                   Tôi đồng ý để trung tâm liên hệ tư vấn. Thông tin được cam kết bảo mật 100%.
                 </span>
               </label>
-              <Button disabled={!consent || submitting} type="submit">
+              <Button disabled={!consent || submitting} type="submit" heatmapId="form-submit-consult">
                 {submitting ? "Đang gửi đăng ký..." : primaryAction}
               </Button>
             </>
@@ -977,16 +992,36 @@ function BackToTop({
       className={`back-to-top ${visible ? "is-visible" : ""}`}
       onClick={onScrollToTop}
       type="button"
+      data-heatmap-id="btn-back-to-top"
+      title="Cuộn lên đầu trang"
     >
       <Icon name="arrowUp" size={24} />
     </button>
   )
 }
 
-function FloatingContactBar({ phone }: { phone: string }) {
+function FloatingContactBar({
+  phone,
+  facebook = "https://www.facebook.com",
+}: {
+  phone: string
+  facebook?: string
+}) {
   const cleanPhone = phone.replace(/[^0-9]/g, "") || "0962903942"
   return (
     <div className="floating-contact" aria-label="Liên hệ nhanh">
+      <a
+        className="floating-contact__btn floating-contact__btn--facebook"
+        href={facebook}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Nhắn tin Facebook tư vấn"
+        title="Nhắn tin Facebook tư vấn"
+        data-heatmap-id="cta-float-facebook"
+      >
+        <span className="floating-contact__pulse" />
+        <Icon name="facebook" size={20} />
+      </a>
       <a
         className="floating-contact__btn floating-contact__btn--zalo"
         href={`https://zalo.me/${cleanPhone}`}
@@ -994,6 +1029,7 @@ function FloatingContactBar({ phone }: { phone: string }) {
         rel="noopener noreferrer"
         aria-label="Nhắn tin Zalo tư vấn"
         title="Nhắn tin Zalo tư vấn"
+        data-heatmap-id="cta-float-zalo"
       >
         <span className="floating-contact__pulse" />
         <span className="floating-contact__text">Zalo</span>
@@ -1003,6 +1039,7 @@ function FloatingContactBar({ phone }: { phone: string }) {
         href={`tel:${cleanPhone}`}
         aria-label={`Gọi hotline tư vấn ${phone}`}
         title={`Gọi hotline tư vấn ${phone}`}
+        data-heatmap-id="cta-float-phone"
       >
         <span className="floating-contact__pulse" />
         <Icon name="phone" size={20} />
@@ -1137,6 +1174,9 @@ export default function App() {
       }
     } catch {}
 
+    // Khởi tạo heatmap tracker cho hành vi chạm / click / cuộn của người dùng
+    getHeatmapTracker().init()
+
     return () => {
       window.removeEventListener("focus", syncFromCloud)
       window.removeEventListener("storage", handleStorage)
@@ -1158,8 +1198,11 @@ export default function App() {
       <Faq />
       <Contact />
       <Footer />
+      <FloatingContactBar
+        phone={config.phone || "096 290 3942"}
+        facebook={config.facebook || "https://www.facebook.com"}
+      />
       <BackToTop visible={showBackToTop} onScrollToTop={scrollToTop} />
-      <FloatingContactBar phone={config.phone || "096 290 3942"} />
     </LandingConfigContext.Provider>
   )
 }

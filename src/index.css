@@ -1549,21 +1549,22 @@ a.contact__info-item:hover {
   color: var(--muted);
 }
 
-/* Nút liên hệ nhanh nổi góc trái màn hình */
+/* Nút liên hệ nhanh nổi góc phải màn hình, nằm bên trên nút cuộn trang (Thumb-zone Ergonomics) */
 .floating-contact {
   position: fixed;
-  bottom: 28px;
-  left: 28px;
+  bottom: 84px;
+  right: 24px;
   z-index: 95;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  align-items: center;
 }
 
 .floating-contact__btn {
   position: relative;
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1572,6 +1573,10 @@ a.contact__info-item:hover {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
+}
+
+.floating-contact__btn--facebook {
+  background: linear-gradient(135deg, #1877f2, #0d65d9);
 }
 
 .floating-contact__btn--zalo {
@@ -1583,7 +1588,7 @@ a.contact__info-item:hover {
 }
 
 .floating-contact__btn:hover {
-  transform: translateY(-3px) scale(1.08);
+  transform: translateY(-2px) scale(1.08);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
 }
 
@@ -1620,4 +1625,23 @@ a.contact__info-item:hover {
     opacity: 0;
   }
 }
+
+@media (max-width: 640px) {
+  .floating-contact {
+    right: 16px;
+    bottom: 74px;
+    gap: 10px;
+  }
+  .floating-contact__btn {
+    width: 44px;
+    height: 44px;
+  }
+  .back-to-top {
+    right: 16px;
+    bottom: 18px;
+    width: 44px;
+    height: 44px;
+  }
+}
+
 
