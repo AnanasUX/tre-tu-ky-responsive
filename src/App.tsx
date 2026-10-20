@@ -475,10 +475,10 @@ function Team() {
     "Mỗi hồ sơ có sẵn vị trí cho ảnh, tên, chuyên môn và phần giới thiệu. Thông tin chính thức sẽ được cập nhật sau khi trung tâm xác minh."
 
   const defaultTeam = [
-    { name: "Tên giáo viên", role: "Chuyên môn / vai trò", bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ." },
-    { name: "Tên giáo viên", role: "Chuyên môn / vai trò", bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ." },
-    { name: "Tên giáo viên", role: "Chuyên môn / vai trò", bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ." },
-    { name: "Tên giáo viên", role: "Chuyên môn / vai trò", bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ." },
+    { name: "Tên giáo viên", role: "Chuyên môn / vai trò", bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ.", image: "" },
+    { name: "Tên giáo viên", role: "Chuyên môn / vai trò", bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ.", image: "" },
+    { name: "Tên giáo viên", role: "Chuyên môn / vai trò", bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ.", image: "" },
+    { name: "Tên giáo viên", role: "Chuyên môn / vai trò", bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ.", image: "" },
   ]
 
   const members = section?.items && section.items.length > 0
@@ -486,6 +486,7 @@ function Team() {
         name: item.title,
         role: item.meta || "Chuyên môn / vai trò",
         bio: item.description ?? "",
+        image: item.image,
       }))
     : defaultTeam
 
@@ -501,16 +502,20 @@ function Team() {
           {members.map((item, index) => (
             <article className="profile-card" key={`${item.name}-${index}`}>
               <div className="profile-card__portrait">
-                <div className="profile-card__placeholder" aria-hidden="true">
-                  <Icon name="profile" size={52} />
-                  <span>Thêm ảnh chân dung</span>
-                </div>
+                {item.image ? (
+                  <img src={item.image} alt={item.name} />
+                ) : (
+                  <div className="profile-card__placeholder" aria-hidden="true">
+                    <Icon name="profile" size={52} />
+                    <span>Thêm ảnh chân dung</span>
+                  </div>
+                )}
               </div>
               <div className="profile-card__content">
                 <h3>{item.name}</h3>
                 <span className="profile-card__role">{item.role}</span>
                 <p>{item.bio}</p>
-                <span className="status-label">Chờ cập nhật</span>
+                <span className="status-label">{item.image ? "Đã xác minh" : "Chờ cập nhật"}</span>
               </div>
             </article>
           ))}
