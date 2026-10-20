@@ -1,7 +1,11 @@
 {
-  "description": "Delivers a responsive design system interface enabling designers and developers to create consistent, scalable UI components efficiently across projects.",
+  "title": "Trung tâm trẻ tự kỷ cô Hương",
+  "description": "Trung tâm chuyên sâu về can thiệp sớm cho trẻ tự kỷ, chậm nói, âm ngữ trị liệu, can thiệp hành vi ABA, điều hòa cảm giác OT tại TDP Duyên Phúc, xã Hưng Hà, Tỉnh Hưng Yên.",
+  "icons": {
+    "icon": "./logo.png"
+  },
   "robots": {
-    "index": false
+    "index": true
   },
   "accessibility": {
     "addBypassLinks": false,
