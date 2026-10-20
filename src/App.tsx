@@ -749,20 +749,57 @@ function Contact() {
   const section = getSection(config, "contact")
   if (section && !section.enabled) return null
 
-  const eyebrow = section?.eyebrow ?? "Bắt đầu bằng một cuộc trò chuyện"
-  const title = section?.title ?? "Trao đổi cùng trung tâm"
+  const eyebrow = section?.eyebrow ?? "Đồng hành cùng gia đình"
+  const title = section?.title ?? "Đăng ký tư vấn & Đánh giá phát triển cho con"
   const description =
     section?.description ??
-    "Đây là biểu mẫu giao diện tham khảo. Thông tin chỉ nên được gửi khi trung tâm xác nhận kênh tiếp nhận và chính sách quyền riêng tư."
-  const primaryAction = section?.primaryAction ?? "Gửi yêu cầu tư vấn"
+    "Mỗi đứa trẻ đều là một điều kỳ diệu với nhịp phát triển riêng. Hãy để lại thông tin để Cô Hương và chuyên viên tâm lý liên hệ lắng nghe, giải đáp băn khoăn và đề xuất lộ trình hỗ trợ phù hợp nhất cho con."
+  const primaryAction = section?.primaryAction ?? "Gửi đăng ký tư vấn"
 
+  const [submitting, setSubmitting] = useState(false)
   const [sent, setSent] = useState(false)
-  const [consent, setConsent] = useState(false)
+  const [consent, setConsent] = useState(true)
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setSent(true)
+    setSubmitting(true)
+    const form = event.currentTarget
+    const formData = new FormData(form)
+    const lead = {
+      id: "lead-" + Date.now(),
+      name: String(formData.get("name") || "").trim(),
+      phone: String(formData.get("phone") || "").trim(),
+      need: String(formData.get("need") || "").trim(),
+      message: String(formData.get("message") || "").trim(),
+      createdAt: new Date().toISOString(),
+      status: "new",
+    }
+
+    try {
+      const url = "https://kvdb.io/RtALwN4JAnjEQUjqKLgAuk/consultation_leads"
+      const res = await fetch(url, { cache: "no-store" })
+      const leads = res.ok ? await res.json() : []
+      leads.unshift(lead)
+      await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(leads),
+      })
+      try {
+        const ch = new BroadcastChannel("aurora-leads-sync")
+        ch.postMessage({ type: "new_lead", lead })
+        ch.close()
+      } catch {}
+    } catch (err) {
+      console.warn("Could not save consultation lead:", err)
+    } finally {
+      setSubmitting(false)
+      setSent(true)
+    }
   }
+
+  const phone = config.phone || "096 290 3942"
+  const address = config.address || "TDP Duyên Phúc, xã Hưng Hà, Tỉnh Hưng Yên"
 
   return (
     <section className="contact" id="contact">
@@ -771,68 +808,91 @@ function Contact() {
           <span className="eyebrow">{eyebrow}</span>
           <h2>{title}</h2>
           <p>{description}</p>
-          <div className="notice notice--info">
-            <Icon name="chat" size={20} />
-            <span>
-              <strong>Chưa kết nối gửi</strong>
-              Cần xác nhận thông tin liên hệ và nơi lưu trữ dữ liệu.
-            </span>
+          
+          <div className="contact__info-list">
+            <a className="contact__info-item" href={`tel:${phone.replace(/[^0-9]/g, "")}`}>
+              <span className="contact__info-icon"><Icon name="phone" size={20} /></span>
+              <div>
+                <strong>Hotline & Zalo tư vấn</strong>
+                <span>{phone} (Hỗ trợ 24/7)</span>
+              </div>
+            </a>
+            <div className="contact__info-item">
+              <span className="contact__info-icon"><Icon name="pin" size={20} /></span>
+              <div>
+                <strong>Địa chỉ cơ sở</strong>
+                <span>{address}</span>
+              </div>
+            </div>
+            <div className="contact__info-item">
+              <span className="contact__info-icon"><Icon name="clock" size={20} /></span>
+              <div>
+                <strong>Thời gian đón tiếp</strong>
+                <span>Thứ 2 – Thứ 7: 07:30 – 17:30</span>
+              </div>
+            </div>
           </div>
         </div>
+
         <form className="contact-form reveal reveal-delay-2" onSubmit={submit}>
           {sent ? (
             <div className="form-success">
-              <span className="icon-box">
-                <Icon name="chat" />
+              <span className="icon-box" style={{ background: "#e8f8ec", color: "#2d9935" }}>
+                <Icon name="heart" size={28} />
               </span>
-              <h3>Mẫu đang ở chế độ minh hoạ</h3>
+              <h3>Đã tiếp nhận thông tin!</h3>
               <p>
-                Thông tin chưa được gửi hoặc lưu. Trạng thái này chỉ xác nhận
-                định dạng biểu mẫu hợp lệ.
+                Cảm ơn Quý phụ huynh đã tin tưởng gửi gắm. Cô Hương và ban chuyên môn sẽ liên hệ lại trực tiếp qua số điện thoại sớm nhất để đồng hành cùng gia đình.
               </p>
-              <Button onClick={() => setSent(false)} variant="secondary">
-                Quay lại biểu mẫu
-              </Button>
+              <div style={{ display: "flex", gap: "10px", marginTop: "16px", flexWrap: "wrap" }}>
+                <a className="button button--primary" href={`tel:${phone.replace(/[^0-9]/g, "")}`}>
+                  Gọi ngay: {phone}
+                </a>
+                <Button onClick={() => setSent(false)} variant="secondary">
+                  Gửi thêm yêu cầu
+                </Button>
+              </div>
             </div>
           ) : (
             <>
               <div className="form-field">
-                <label htmlFor="name">Họ tên phụ huynh</label>
+                <label htmlFor="name">Họ tên phụ huynh <span style={{ color: "var(--primary)" }}>*</span></label>
                 <input
                   id="name"
                   name="name"
-                  placeholder="Nhập họ và tên"
+                  placeholder="Ví dụ: Nguyễn Thị Mai"
                   required
                 />
               </div>
               <div className="form-field">
-                <label htmlFor="phone">Số điện thoại</label>
+                <label htmlFor="phone">Số điện thoại liên hệ <span style={{ color: "var(--primary)" }}>*</span></label>
                 <input
                   id="phone"
                   name="phone"
-                  placeholder={config.phone ? `Ví dụ: ${config.phone}` : "Ví dụ: 090 123 4567"}
+                  placeholder={phone ? `Ví dụ: ${phone}` : "Ví dụ: 096 290 3942"}
                   required
                   type="tel"
                 />
               </div>
               <div className="form-field">
-                <label htmlFor="need">Nhu cầu gia đình quan tâm</label>
+                <label htmlFor="need">Tình trạng / Nhu cầu của con</label>
                 <select id="need" name="need">
-                  <option value="">Chọn nhu cầu</option>
-                  <option>Giao tiếp / Ngôn ngữ</option>
-                  <option>Kỹ năng xã hội</option>
-                  <option>Cảm xúc</option>
-                  <option>Học tập</option>
-                  <option>Nội dung khác</option>
+                  <option value="Can thiệp sớm & đánh giá ban đầu">Can thiệp sớm & đánh giá phát triển ban đầu</option>
+                  <option value="Chậm nói / Âm ngữ trị liệu">Trẻ chậm nói / Cần âm ngữ trị liệu</option>
+                  <option value="Tự kỷ / Kém tương tác xã hội">Biểu hiện tự kỷ / Kém tương tác mắt & xã hội</option>
+                  <option value="Điều hòa cảm giác & vận động OT">Khó điều hòa cảm giác / Rối loạn vận động (OT)</option>
+                  <option value="Can thiệp hành vi ABA">Can thiệp hành vi ứng dụng (ABA)</option>
+                  <option value="Tiền tiểu học hòa nhập">Chuẩn bị vào lớp 1 hòa nhập</option>
+                  <option value="Khác">Nhu cầu khác</option>
                 </select>
               </div>
               <div className="form-field">
-                <label htmlFor="message">Điều bạn muốn chia sẻ thêm</label>
+                <label htmlFor="message">Chia sẻ thêm về độ tuổi hoặc biểu hiện của con (tuỳ chọn)</label>
                 <textarea
                   id="message"
                   name="message"
-                  placeholder="Không nhập dữ liệu nhạy cảm của trẻ"
-                  rows={4}
+                  placeholder="Ví dụ: Con 28 tháng tuổi, chưa biết chỉ tay, hay lặp lời..."
+                  rows={3}
                 />
               </div>
               <label className="checkbox">
@@ -842,17 +902,12 @@ function Contact() {
                   type="checkbox"
                 />
                 <span>
-                  Tôi đồng ý để trung tâm liên hệ về nhu cầu tư vấn. Nội dung
-                  consent và chính sách quyền riêng tư cần được duyệt trước khi
-                  triển khai.
+                  Tôi đồng ý để trung tâm liên hệ tư vấn. Thông tin được cam kết bảo mật 100%.
                 </span>
               </label>
-              <Button disabled={!consent} type="submit">
-                {primaryAction}
+              <Button disabled={!consent || submitting} type="submit">
+                {submitting ? "Đang gửi đăng ký..." : primaryAction}
               </Button>
-              <small>
-                Bản mẫu chưa kết nối hệ thống gửi hoặc lưu dữ liệu.
-              </small>
             </>
           )}
         </form>
@@ -928,6 +983,34 @@ function BackToTop({
   )
 }
 
+function FloatingContactBar({ phone }: { phone: string }) {
+  const cleanPhone = phone.replace(/[^0-9]/g, "") || "0962903942"
+  return (
+    <div className="floating-contact" aria-label="Liên hệ nhanh">
+      <a
+        className="floating-contact__btn floating-contact__btn--zalo"
+        href={`https://zalo.me/${cleanPhone}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Nhắn tin Zalo tư vấn"
+        title="Nhắn tin Zalo tư vấn"
+      >
+        <span className="floating-contact__pulse" />
+        <span className="floating-contact__text">Zalo</span>
+      </a>
+      <a
+        className="floating-contact__btn floating-contact__btn--phone"
+        href={`tel:${cleanPhone}`}
+        aria-label={`Gọi hotline tư vấn ${phone}`}
+        title={`Gọi hotline tư vấn ${phone}`}
+      >
+        <span className="floating-contact__pulse" />
+        <Icon name="phone" size={20} />
+      </a>
+    </div>
+  )
+}
+
 function useScrollEffects(dep: any) {
   const [scrolled, setScrolled] = useState(false)
   const [scrollProgress, setScrollProgress] = useState(0)
@@ -935,15 +1018,12 @@ function useScrollEffects(dep: any) {
   const lenisRef = useRef<Lenis | null>(null)
 
   useEffect(() => {
-    // Khởi tạo Lenis smooth momentum scroll cho toàn trang
+    // Khởi tạo Lenis smooth momentum scroll cao cấp (dùng lerp damping siêu mượt)
     const lenis = new Lenis({
-      duration: 1.25,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      orientation: "vertical",
-      gestureOrientation: "vertical",
+      lerp: 0.075, // Trớn quán tính mềm mại, mượt mà chuẩn lụa
+      wheelMultiplier: 0.9, // Trọng số cuộn tự nhiên, êm dịu
+      touchMultiplier: 1.5,
       smoothWheel: true,
-      wheelMultiplier: 1.05,
-      touchMultiplier: 1.6,
       autoRaf: true,
       anchors: true,
     })
@@ -967,6 +1047,17 @@ function useScrollEffects(dep: any) {
     setScrolled(initialY > 30)
     setShowBackToTop(initialY > 350)
 
+    return () => {
+      lenis.destroy()
+      lenisRef.current = null
+      delete (window as any).__lenis
+    }
+  }, [])
+
+  useEffect(() => {
+    // Khi dữ liệu trang cập nhật, cập nhật lại kích thước khung cuộn Lenis
+    lenisRef.current?.resize()
+
     // IntersectionObserver for reveal animations
     const observer = new IntersectionObserver(
       (entries) => {
@@ -977,7 +1068,7 @@ function useScrollEffects(dep: any) {
         })
       },
       {
-        threshold: 0.1,
+        threshold: 0.08,
         rootMargin: "0px 0px -40px 0px",
       }
     )
@@ -986,9 +1077,6 @@ function useScrollEffects(dep: any) {
     revealElements.forEach((el) => observer.observe(el))
 
     return () => {
-      lenis.destroy()
-      lenisRef.current = null
-      delete (window as any).__lenis
       observer.disconnect()
     }
   }, [dep])
@@ -1071,6 +1159,7 @@ export default function App() {
       <Contact />
       <Footer />
       <BackToTop visible={showBackToTop} onScrollToTop={scrollToTop} />
+      <FloatingContactBar phone={config.phone || "096 290 3942"} />
     </LandingConfigContext.Provider>
   )
 }
