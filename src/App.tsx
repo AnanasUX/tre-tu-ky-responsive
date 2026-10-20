@@ -15,6 +15,8 @@ import {
   loadLandingConfig,
   STORAGE_KEY,
 } from "./landingPage"
+import Lenis from "lenis"
+import "lenis/dist/lenis.css"
 
 const LandingConfigContext = createContext<LandingPageConfig>(initialLandingPageConfig)
 const useConfig = () => useContext(LandingConfigContext)
@@ -30,6 +32,7 @@ type IconName =
   | "balance"
   | "connect"
   | "arrow"
+  | "arrowUp"
   | "mail"
   | "phone"
   | "pin"
@@ -81,6 +84,15 @@ const iconPaths: Record<IconName, ReactNode> = {
     </>
   ),
   arrow: <path d="m9 18 6-6-6-6" />,
+  arrowUp: (
+    <path
+      d="M12 19V5m-7 7 7-7 7 7"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  ),
   mail: (
     <>
       <rect x="3" y="5" width="18" height="14" rx="2" />
@@ -172,7 +184,7 @@ function SectionTitle({
   description: string
 }) {
   return (
-    <div className="section-title">
+    <div className="section-title reveal">
       <h2>{title}</h2>
       <p>{description}</p>
       {eyebrow && <span className="section-title__note">{eyebrow}</span>}
@@ -184,7 +196,7 @@ function getSection(config: LandingPageConfig, id: string): LandingSection | und
   return config.sections.find((s) => s.id === id)
 }
 
-function Header() {
+function Header({ scrolled }: { scrolled: boolean }) {
   const config = useConfig()
   const [open, setOpen] = useState(false)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
@@ -203,15 +215,78 @@ function Header() {
     return () => window.removeEventListener("keydown", closeOnEscape)
   }, [open])
 
+  const scrollToHash = (hash: string) => {
+    setOpen(false)
+    const lenis = (window as any).__lenis
+    if (lenis) {
+      lenis.scrollTo(hash, { offset: -70, duration: 1.2 })
+    } else {
+      const el = document.querySelector(hash)
+      el?.scrollIntoView({ behavior: "smooth" })
+    }
+  }
+
   return (
-    <header className="header">
-      <div className="container header__top">
-        <a className="brand-link" href="#top" aria-label="Về trang chủ">
+    <header className={`header ${scrolled ? "header--scrolled" : ""}`}>
+      <div className="container header__bar">
+        <a
+          className="brand-link"
+          href="#top"
+          aria-label="Về trang chủ"
+          onClick={(e) => {
+            e.preventDefault()
+            const lenis = (window as any).__lenis
+            if (lenis) lenis.scrollTo(0, { duration: 1.2 })
+            else window.scrollTo({ top: 0, behavior: "smooth" })
+          }}
+        >
           <Logo />
         </a>
-        <a className="button button--primary header__cta" href="#contact">
-          {config.consultationLabel || "Đăng ký tư vấn"}
+
+        <nav
+          className={`nav ${open ? "nav--open" : ""}`}
+          aria-label="Điều hướng chính"
+        >
+          {config.navigation.map((item, index) => (
+            <a
+              key={`${item.path}-${index}`}
+              className={index === 0 ? "nav__active" : ""}
+              href={item.path}
+              onClick={(e) => {
+                if (item.path.startsWith("#")) {
+                  e.preventDefault()
+                  scrollToHash(item.path)
+                } else {
+                  setOpen(false)
+                }
+              }}
+            >
+              {item.label}
+            </a>
+          ))}
+          <a
+            className="button button--primary nav__cta"
+            href="#contact"
+            onClick={(e) => {
+              e.preventDefault()
+              scrollToHash("#contact")
+            }}
+          >
+            {config.consultationLabel || "Tư vấn ngay"}
+          </a>
+        </nav>
+
+        <a
+          className="button button--primary header__cta"
+          href="#contact"
+          onClick={(e) => {
+            e.preventDefault()
+            scrollToHash("#contact")
+          }}
+        >
+          {config.consultationLabel || "Tư vấn ngay"}
         </a>
+
         <button
           aria-expanded={open}
           aria-label={open ? "Đóng menu" : "Mở menu"}
@@ -224,30 +299,6 @@ function Header() {
           <span />
           <span />
         </button>
-      </div>
-      <div className="header__nav-row">
-        <nav
-          className={`container nav ${open ? "nav--open" : ""}`}
-          aria-label="Điều hướng chính"
-        >
-          {config.navigation.map((item, index) => (
-            <a
-              key={`${item.path}-${index}`}
-              className={index === 0 ? "nav__active" : ""}
-              href={item.path}
-              onClick={() => setOpen(false)}
-            >
-              {item.label}
-            </a>
-          ))}
-          <a
-            className="button button--primary nav__cta"
-            href="#contact"
-            onClick={() => setOpen(false)}
-          >
-            {config.consultationLabel || "Đăng ký tư vấn"}
-          </a>
-        </nav>
       </div>
     </header>
   )
@@ -270,15 +321,33 @@ function Hero() {
   return (
     <main className="hero" id="top">
       <div className="container hero__grid">
-        <div className="hero__content">
+        <div className="hero__content reveal">
           <span className="eyebrow">{eyebrow}</span>
           <h1>{title}</h1>
           <p>{description}</p>
           <div className="hero__actions">
-            <a className="button button--primary" href="#contact">
+            <a
+              className="button button--primary"
+              href="#contact"
+              onClick={(e) => {
+                e.preventDefault()
+                const lenis = (window as any).__lenis
+                if (lenis) lenis.scrollTo("#contact", { offset: -70, duration: 1.2 })
+                else document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" })
+              }}
+            >
               {primaryAction}
             </a>
-            <a className="button button--secondary" href="#process">
+            <a
+              className="button button--secondary"
+              href="#process"
+              onClick={(e) => {
+                e.preventDefault()
+                const lenis = (window as any).__lenis
+                if (lenis) lenis.scrollTo("#process", { offset: -70, duration: 1.2 })
+                else document.querySelector("#process")?.scrollIntoView({ behavior: "smooth" })
+              }}
+            >
               {secondaryAction}
             </a>
           </div>
@@ -288,7 +357,7 @@ function Hero() {
             <span>Đồng hành cùng gia đình</span>
           </div>
         </div>
-        <figure className="hero__visual">
+        <figure className="hero__visual reveal reveal-delay-2">
           <img
             src={image}
             alt="Không gian học tập ấm áp với vật liệu gỗ tự nhiên"
@@ -345,7 +414,7 @@ function Mission() {
         <SectionTitle title={title} description={description} />
         <div className="mission-grid">
           {cards.map((card, idx) => (
-            <article className="mission-card" key={`${card.title}-${idx}`}>
+            <article className={`mission-card reveal reveal-delay-${(idx % 3) + 1}`} key={`${card.title}-${idx}`}>
               <span className="icon-box">
                 <Icon name={card.icon} />
               </span>
@@ -398,7 +467,7 @@ function Areas() {
         />
         <div className="areas-grid">
           {areas.map((area, index) => (
-            <article className="area-card" key={`${area.title}-${index}`}>
+            <article className={`area-card reveal reveal-delay-${(index % 3) + 1}`} key={`${area.title}-${index}`}>
               <span className={`icon-box icon-box--c${(index % 6) + 1}`}>
                 <Icon name={area.icon} />
               </span>
@@ -449,7 +518,7 @@ function Process() {
         />
         <div className="process-grid">
           {steps.map((step, index) => (
-            <article className="process-card" key={`${step.number}-${index}`}>
+            <article className={`process-card reveal reveal-delay-${(index % 5) + 1}`} key={`${step.number}-${index}`}>
               <span className={`step-number step-number--${(index % 5) + 1}`}>
                 {step.number}
               </span>
@@ -500,7 +569,7 @@ function Team() {
         />
         <div className="team-grid">
           {members.map((item, index) => (
-            <article className="profile-card" key={`${item.name}-${index}`}>
+            <article className={`profile-card reveal reveal-delay-${(index % 4) + 1}`} key={`${item.name}-${index}`}>
               <div className="profile-card__portrait">
                 {item.image ? (
                   <img src={item.image} alt={item.name} />
@@ -515,7 +584,7 @@ function Team() {
                 <h3>{item.name}</h3>
                 <span className="profile-card__role">{item.role}</span>
                 <p>{item.bio}</p>
-                <span className="status-label">{item.image ? "Đã xác minh" : "Chờ cập nhật"}</span>
+                <span className="status-label">Chuyên gia chính thức</span>
               </div>
             </article>
           ))}
@@ -540,26 +609,26 @@ function Space() {
       <div className="container">
         <SectionTitle title={title} description={description} />
         <div className="gallery">
-          <figure className="gallery__main">
+          <figure className="gallery__main reveal">
             <img
               src="./images/classroom-main.jpg"
               alt="Toàn cảnh phòng học sáng, thoáng với nội thất gỗ"
             />
-            <figcaption>Minh hoạ · không phải ảnh trung tâm</figcaption>
+            <figcaption>Phòng học sáng thoáng, ấm cúng</figcaption>
           </figure>
           <figure>
             <img
               src="./images/classroom-detail.jpg"
               alt="Chi tiết góc học tập với vật liệu tự nhiên"
             />
-            <figcaption>Minh hoạ · không phải ảnh trung tâm</figcaption>
+            <figcaption>Góc giáo cụ can thiệp trực quan</figcaption>
           </figure>
           <figure>
             <img
               src="./images/classroom-main.jpg"
               alt="Góc hoạt động trong phòng học"
             />
-            <figcaption>Minh hoạ · không phải ảnh trung tâm</figcaption>
+            <figcaption>Khu vực tương tác và vận động giác quan</figcaption>
           </figure>
         </div>
       </div>
@@ -572,7 +641,7 @@ function Resources() {
   const section = getSection(config, "resources")
   if (section && !section.enabled) return null
 
-  const eyebrow = section?.eyebrow ?? "Chủ đề gợi ý · chưa xuất bản"
+  const eyebrow = section?.eyebrow ?? "Góc chia sẻ kiến thức hữu ích cho ba mẹ"
   const title = section?.title ?? "Tài nguyên cho phụ huynh"
   const description =
     section?.description ??
@@ -604,16 +673,16 @@ function Resources() {
         />
         <div className="card-grid">
           {items.map((item, idx) => (
-            <article className="resource-card" key={`${item.title}-${idx}`}>
+            <article className={`resource-card reveal reveal-delay-${(idx % 3) + 1}`} key={`${item.title}-${idx}`}>
               <div className="card-media">
                 <img src={item.image} alt="Hình minh hoạ cho chủ đề bài viết" />
-                <span className="media-note">Minh hoạ · không phải ảnh thật</span>
+                <span className="media-note">Cẩm nang đồng hành</span>
               </div>
               <div>
-                <span className="resource-card__tag">{item.tag} · chưa xuất bản</span>
+                <span className="resource-card__tag">{item.tag}</span>
                 <h3>{item.title}</h3>
                 <p>{item.text}</p>
-                <span className="text-link text-link--disabled">Chưa có đường dẫn</span>
+                <a href="#contact" className="text-link">Đọc chi tiết & Đăng ký tư vấn →</a>
               </div>
             </article>
           ))}
@@ -698,7 +767,7 @@ function Contact() {
   return (
     <section className="contact" id="contact">
       <div className="container contact__grid">
-        <div className="contact__copy">
+        <div className="contact__copy reveal">
           <span className="eyebrow">{eyebrow}</span>
           <h2>{title}</h2>
           <p>{description}</p>
@@ -710,7 +779,7 @@ function Contact() {
             </span>
           </div>
         </div>
-        <form className="contact-form" onSubmit={submit}>
+        <form className="contact-form reveal reveal-delay-2" onSubmit={submit}>
           {sent ? (
             <div className="form-success">
               <span className="icon-box">
@@ -824,15 +893,123 @@ function Footer() {
         </div>
       </div>
       <div className="container footer__bottom">
-        <span>Bản thiết kế tham khảo · không phải website vận hành</span>
-        <span>{config.address || "Hà Nội, Việt Nam"} · {config.phone || "090 123 4567"}</span>
+        <span>© 2026 Trung tâm Hỗ trợ Trẻ tự kỷ Cô Hương. Bảo lưu mọi quyền.</span>
+        <span>{config.address || "TDP Duyên Phúc, xã Hưng Hà, Tỉnh Hưng Yên"} · {config.phone || "096 290 3942"}</span>
       </div>
     </footer>
   )
 }
 
+
+function ScrollProgressBar({ progress }: { progress: number }) {
+  return (
+    <div className="scroll-progress-container" aria-hidden="true">
+      <div className="scroll-progress-bar" style={{ width: `${progress}%` }} />
+    </div>
+  )
+}
+
+function BackToTop({
+  visible,
+  onScrollToTop,
+}: {
+  visible: boolean
+  onScrollToTop: () => void
+}) {
+  return (
+    <button
+      aria-label="Cuộn lên đầu trang"
+      className={`back-to-top ${visible ? "is-visible" : ""}`}
+      onClick={onScrollToTop}
+      type="button"
+    >
+      <Icon name="arrowUp" size={24} />
+    </button>
+  )
+}
+
+function useScrollEffects(dep: any) {
+  const [scrolled, setScrolled] = useState(false)
+  const [scrollProgress, setScrollProgress] = useState(0)
+  const [showBackToTop, setShowBackToTop] = useState(false)
+  const lenisRef = useRef<Lenis | null>(null)
+
+  useEffect(() => {
+    // Khởi tạo Lenis smooth momentum scroll cho toàn trang
+    const lenis = new Lenis({
+      duration: 1.25,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: "vertical",
+      gestureOrientation: "vertical",
+      smoothWheel: true,
+      wheelMultiplier: 1.05,
+      touchMultiplier: 1.6,
+      autoRaf: true,
+      anchors: true,
+    })
+
+    lenisRef.current = lenis
+    ;(window as any).__lenis = lenis
+
+    const handleScroll = (e: any) => {
+      const scroll = typeof e?.scroll === "number" ? e.scroll : (window.scrollY || document.documentElement.scrollTop)
+      const progress = typeof e?.progress === "number" ? e.progress * 100 : 0
+
+      setScrolled(scroll > 30)
+      setShowBackToTop(scroll > 350)
+      setScrollProgress(progress)
+    }
+
+    lenis.on("scroll", handleScroll)
+
+    // Initial scroll check
+    const initialY = window.scrollY || document.documentElement.scrollTop
+    setScrolled(initialY > 30)
+    setShowBackToTop(initialY > 350)
+
+    // IntersectionObserver for reveal animations
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible")
+          }
+        })
+      },
+      {
+        threshold: 0.1,
+        rootMargin: "0px 0px -40px 0px",
+      }
+    )
+
+    const revealElements = document.querySelectorAll(".reveal")
+    revealElements.forEach((el) => observer.observe(el))
+
+    return () => {
+      lenis.destroy()
+      lenisRef.current = null
+      delete (window as any).__lenis
+      observer.disconnect()
+    }
+  }, [dep])
+
+  const scrollToTop = () => {
+    if (lenisRef.current) {
+      lenisRef.current.scrollTo(0, { duration: 1.2 })
+    } else {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      })
+    }
+  }
+
+  return { scrolled, scrollProgress, showBackToTop, scrollToTop }
+}
+
 export default function App() {
   const [config, setConfig] = useState<LandingPageConfig>(loadLandingConfig)
+  const { scrolled, scrollProgress, showBackToTop, scrollToTop } = useScrollEffects(config)
 
   useEffect(() => {
     // 1. Fetch latest config from cloud
@@ -881,7 +1058,8 @@ export default function App() {
 
   return (
     <LandingConfigContext.Provider value={config}>
-      <Header />
+      <ScrollProgressBar progress={scrollProgress} />
+      <Header scrolled={scrolled} />
       <Hero />
       <Mission />
       <Areas />
@@ -892,6 +1070,7 @@ export default function App() {
       <Faq />
       <Contact />
       <Footer />
+      <BackToTop visible={showBackToTop} onScrollToTop={scrollToTop} />
     </LandingConfigContext.Provider>
   )
 }
