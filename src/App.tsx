@@ -8,6 +8,7 @@ import {
   useState,
 } from "react"
 import {
+  fetchCloudConfig,
   initialLandingPageConfig,
   LandingPageConfig,
   LandingSection,
@@ -829,6 +830,19 @@ export default function App() {
   const [config, setConfig] = useState<LandingPageConfig>(loadLandingConfig)
 
   useEffect(() => {
+    // 1. Fetch latest config from cloud
+    const syncFromCloud = async () => {
+      const cloudData = await fetchCloudConfig()
+      if (cloudData) {
+        setConfig(cloudData)
+      }
+    }
+    syncFromCloud()
+
+    // 2. Sync again whenever user refocuses this tab/window
+    window.addEventListener("focus", syncFromCloud)
+
+    // 3. Listen for localStorage changes from other tabs on same origin
     function handleStorage(e: StorageEvent) {
       if (e.key === STORAGE_KEY && e.newValue) {
         try {
@@ -838,17 +852,23 @@ export default function App() {
     }
     window.addEventListener("storage", handleStorage)
 
+    // 4. BroadcastChannel for instant real-time sync across open tabs
     let channel: BroadcastChannel | null = null
     try {
       channel = new BroadcastChannel("aurora-cms-sync")
       channel.onmessage = (event) => {
         if (event.data?.type === "config_updated") {
-          setConfig(loadLandingConfig())
+          if (event.data.config) {
+            setConfig(event.data.config)
+          } else {
+            syncFromCloud()
+          }
         }
       }
     } catch {}
 
     return () => {
+      window.removeEventListener("focus", syncFromCloud)
       window.removeEventListener("storage", handleStorage)
       channel?.close()
     }

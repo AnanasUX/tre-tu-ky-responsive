@@ -213,6 +213,37 @@ export const initialLandingPageConfig: LandingPageConfig = {
   ],
 };
 
+export const CLOUD_API_URL = "https://kvdb.io/RtALwN4JAnjEQUjqKLgAuk/landing_config";
+
+export async function fetchCloudConfig(): Promise<LandingPageConfig | null> {
+  try {
+    const res = await fetch(CLOUD_API_URL, { cache: "no-store" });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data && Array.isArray(data.sections)) {
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      }
+      return {
+        ...initialLandingPageConfig,
+        ...data,
+        sections: initialLandingPageConfig.sections.map((defaultSec) => {
+          const found = data.sections?.find((s: LandingSection) => s.id === defaultSec.id);
+          if (!found) return defaultSec;
+          return {
+            ...defaultSec,
+            ...found,
+            items: found.items ?? defaultSec.items,
+          };
+        }),
+      };
+    }
+  } catch (err) {
+    console.warn("Could not fetch cloud config:", err);
+  }
+  return null;
+}
+
 export function loadLandingConfig(): LandingPageConfig {
   if (typeof window === "undefined") return initialLandingPageConfig;
   try {
