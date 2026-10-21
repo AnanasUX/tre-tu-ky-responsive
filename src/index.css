@@ -252,13 +252,26 @@ a:focus-visible,
   align-items: center;
   display: flex;
   justify-content: space-between;
-  min-height: 76px;
+  height: 72px;
+  min-height: 72px;
+  max-height: 72px;
   gap: 16px;
-  transition: min-height 0.25s ease;
+  box-sizing: border-box;
 }
 
 .header--scrolled .header__bar {
-  min-height: 64px;
+  height: 72px;
+  min-height: 72px;
+  max-height: 72px;
+}
+
+@media (max-width: 991px) {
+  .header__bar,
+  .header--scrolled .header__bar {
+    height: 64px;
+    min-height: 64px;
+    max-height: 64px;
+  }
 }
 
 .brand-link {
@@ -1442,7 +1455,9 @@ section, .hero, .contact {
 }
 
 .header--scrolled .header__bar {
-  min-height: 70px;
+  height: 72px;
+  min-height: 72px;
+  max-height: 72px;
 }
 
 /* Hiệu ứng Reveal on Scroll mượt mà chuẩn hiện đại */

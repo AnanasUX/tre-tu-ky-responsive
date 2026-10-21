@@ -238,7 +238,7 @@ function Header({
     setOpen(false)
     const lenis = (window as any).__lenis
     if (lenis) {
-      lenis.scrollTo(hash, { offset: -70, duration: 1.2 })
+      lenis.scrollTo(hash, { offset: -72, duration: 1.2 })
     } else {
       const el = document.querySelector(hash)
       el?.scrollIntoView({ behavior: "smooth" })
@@ -358,7 +358,7 @@ function Hero() {
               onClick={(e) => {
                 e.preventDefault()
                 const lenis = (window as any).__lenis
-                if (lenis) lenis.scrollTo("#contact", { offset: -70, duration: 1.2 })
+                if (lenis) lenis.scrollTo("#contact", { offset: -72, duration: 1.2 })
                 else document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" })
               }}
             >
@@ -371,7 +371,7 @@ function Hero() {
               onClick={(e) => {
                 e.preventDefault()
                 const lenis = (window as any).__lenis
-                if (lenis) lenis.scrollTo("#process", { offset: -70, duration: 1.2 })
+                if (lenis) lenis.scrollTo("#process", { offset: -72, duration: 1.2 })
                 else document.querySelector("#process")?.scrollIntoView({ behavior: "smooth" })
               }}
             >
@@ -1287,7 +1287,7 @@ function useScrollEffects(dep: any) {
         try {
           const targetEl = document.querySelector(targetHash)
           if (targetEl) {
-            lenis.scrollTo(targetHash, { offset: -70, duration: 1.2 })
+            lenis.scrollTo(targetHash, { offset: -72, duration: 1.2 })
             const cleanId = targetHash.replace("#", "")
             setActiveSection(cleanId)
           }
