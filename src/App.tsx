@@ -1263,8 +1263,8 @@ function FloatingContactBar({
         data-heatmap-id="cta-float-chat"
       >
         {enablePulse && <span className="floating-contact__pulse" />}
-        <span style={{ fontSize: "18px", display: "inline-block", lineHeight: 1 }}>💬</span>
-        <span className="floating-contact__text" style={{ fontSize: "10px", marginTop: "1px", fontWeight: 700 }}>Chat</span>
+        <span className="floating-contact__icon-chat">💬</span>
+        <span className="floating-contact__text-chat">Chat</span>
       </button>
 
       {enableFacebook && (
