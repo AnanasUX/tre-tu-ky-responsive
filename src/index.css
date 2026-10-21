@@ -2477,7 +2477,7 @@ textarea {
   position: relative;
   width: 380px;
   max-width: calc(100vw - 32px);
-  height: 600px;
+  height: 560px;
   max-height: calc(100vh - 40px);
   background: #ffffff;
   border-radius: 20px;
@@ -2597,41 +2597,53 @@ textarea {
 }
 
 /* REGISTER BODY (BƯỚC NHẬP HỌ TÊN + SĐT) */
+.live-chat-portal,
+.live-chat-window,
+.live-chat-window button,
+.live-chat-window input,
+.live-chat-window textarea,
+.live-chat-window select {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+}
+
 .live-chat-register-body {
-  padding: 24px 20px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 12px;
   overflow-y: auto;
   flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.live-chat-register-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.live-chat-register-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
 }
 
 .live-chat-welcome-banner {
   text-align: center;
-  background: #fcf8ff;
+  background: #faf5ff;
   border: 1px solid #ebdcfc;
-  border-radius: 14px;
-  padding: 16px 14px;
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 1px 3px rgba(80, 0, 139, 0.04);
 }
 
-.welcome-emoji {
-  font-size: 32px;
-  display: block;
-  margin-bottom: 6px;
-}
-
-.live-chat-welcome-banner h4 {
-  font-size: 15px;
-  font-weight: 700;
-  color: #50008b;
-  margin-bottom: 6px;
-}
-
-.live-chat-welcome-banner p {
-  font-size: 13px;
-  color: #475569;
+.live-chat-welcome-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #4a044e;
   line-height: 1.45;
   margin: 0;
+  letter-spacing: -0.1px;
 }
 
 .live-chat-form {

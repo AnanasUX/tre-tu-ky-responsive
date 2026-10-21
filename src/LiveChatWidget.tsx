@@ -424,10 +424,8 @@ export function LiveChatWidget({
           /* STEP 1: FORM THU THẬP HỌ TÊN VÀ SỐ ĐIỆN THOẠI TRƯỚC KHI CHAT */
           <div className="live-chat-register-body">
             <div className="live-chat-welcome-banner">
-              <span className="welcome-emoji">👋</span>
-              <h4>Chào mừng Ba/Mẹ đến với Lớp Can thiệp!</h4>
-              <p>
-                Để Cô Hương và ban chuyên môn nắm được thông tin và kịp thời liên hệ tư vấn lộ trình riêng cho bé, xin ba/mẹ vui lòng để lại:
+              <p className="live-chat-welcome-title">
+                Bố mẹ có câu hỏi gì cần trao đổi vui lòng để lại thông tin tại đây
               </p>
             </div>
 
