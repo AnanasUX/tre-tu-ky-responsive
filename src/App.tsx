@@ -616,197 +616,6 @@ function Process() {
   )
 }
 
-function Team() {
-  const config = useConfig()
-  const section = getSection(config, "team")
-  const [selectedTeacher, setSelectedTeacher] = useState<TeacherData | null>(null)
-
-  if (section && !section.enabled) return null
-
-  const eyebrow = section?.eyebrow ?? "Chuyên môn cao · Tận tâm · Giàu tình thương"
-  const title = section?.title ?? "Đội ngũ chuyên gia & giáo viên tận tâm"
-  const description =
-    section?.description ??
-    "Được đào tạo bài bản chuyên sâu về Tâm lý học, Giáo dục Đặc biệt và Âm ngữ trị liệu, luôn kiên nhẫn và đồng hành bằng cả trái tim."
-
-  const defaultTeam = [
-    {
-      name: "ThS. Hoàng Thị Hương",
-      role: "Giám đốc chuyên môn • ThS Tâm lý học lâm sàng",
-      bio: "Hơn 10 năm kinh nghiệm trong công tác đánh giá, chẩn đoán và thiết kế chương trình can thiệp sớm cho trẻ tự kỷ, chậm phát triển.",
-      image: "",
-    },
-    {
-      name: "CN. Nguyễn Thu Trang",
-      role: "Chuyên viên Âm ngữ trị liệu",
-      bio: "Tốt nghiệp Đại học Sư phạm Hà Nội chuyên ngành Giáo dục Đặc biệt, sở hữu chứng chỉ quốc tế về trị liệu ngôn ngữ và phát triển giao tiếp.",
-      image: "",
-    },
-    {
-      name: "CN. Lê Hoàng Minh",
-      role: "Chuyên viên Điều hòa Cảm giác (OT)",
-      bio: "Chuyên sâu về trị liệu tích hợp giác quan, vận động chức năng và thiết kế môi trường học tập an toàn, thân thiện cho trẻ.",
-      image: "",
-    },
-    {
-      name: "Cô Vũ Mai Anh",
-      role: "Giáo viên Can thiệp sớm & Tiền tiểu học",
-      bio: "Giàu kinh nghiệm trong việc xây dựng thói quen tự lập, điều hòa cảm xúc hành vi và chuẩn bị tâm thế vững vàng vào lớp 1 cho trẻ.",
-      image: "",
-    },
-  ]
-
-  const members = section?.items && section.items.length > 0
-    ? section.items.map((item) => ({
-        name: item.title,
-        role: item.meta || "Chuyên môn / vai trò",
-        bio: item.description ?? "",
-        image: item.image,
-      }))
-    : defaultTeam
-
-  const handleTeacherClick = (item: { name: string; role: string; bio: string; image?: string }) => {
-    setSelectedTeacher(getTeacherExtraDetails(item))
-  }
-
-  const handleConsultTeacher = (teacherName: string) => {
-    setSelectedTeacher(null)
-    const contactEl = document.querySelector("#contact")
-    if (contactEl) {
-      contactEl.scrollIntoView({ behavior: "smooth" })
-      setTimeout(() => {
-        const textarea = document.querySelector("#message") as HTMLTextAreaElement
-        if (textarea) {
-          textarea.value = `Gia đình mong muốn được đặt lịch tư vấn và đánh giá phát triển trực tiếp cùng Cô ${teacherName}.`
-          textarea.focus()
-        }
-      }, 500)
-    }
-  }
-
-  return (
-    <section className="section section--team" id="team">
-      <div className="container">
-        <SectionTitle
-          eyebrow={eyebrow}
-          title={title}
-          description={description}
-        />
-        <div className="team-grid">
-          {members.map((item, index) => (
-            <article
-              className={`profile-card profile-card--interactive team-card reveal reveal-delay-${(index % 4) + 1}`}
-              key={`${item.name}-${index}`}
-              onClick={() => handleTeacherClick(item)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault()
-                  handleTeacherClick(item)
-                }
-              }}
-              title={`Bấm để xem bằng cấp và hồ sơ chuyên môn của ${item.name}`}
-            >
-              <div className="profile-card__portrait">
-                {item.image ? (
-                  <img src={item.image} alt={item.name} />
-                ) : (
-                  <div className="profile-card__placeholder" aria-hidden="true">
-                    <Icon name="profile" size={52} />
-                    <span>{item.name}</span>
-                  </div>
-                )}
-                <span className="profile-card__inspect-badge">
-                  <span>🔍 Xem hồ sơ & bằng cấp</span>
-                </span>
-              </div>
-              <div className="profile-card__content">
-                <h3>{item.name}</h3>
-                <span className="profile-card__role">{item.role}</span>
-                <p>{item.bio}</p>
-                <div className="profile-card__footer-pill">
-                  <span className="status-label">Chuyên gia chính thức</span>
-                  <span className="profile-card__view-link">Xem hồ sơ ↗</span>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        {/* Nút phụ trợ Zalo đặt ngay chân khối Đội ngũ (Tối ưu phễu chuyển đổi Zalo Campaign) */}
-        <div className="zalo-direct-cta-card reveal reveal-delay-2">
-          <div className="zalo-direct-cta-card__badge">
-            <Icon name="shield" size={15} />
-            <span>Cam kết bảo mật 100% thông tin gia đình</span>
-          </div>
-          <p>Ba mẹ muốn trao đổi riêng tư về tình trạng của con với Cô Hương?</p>
-          <a
-            href="https://zalo.me/0962903942"
-            className="btn-zalo-direct"
-            target="_blank"
-            rel="noopener noreferrer"
-            data-heatmap-id="cta-team-zalo-direct"
-          >
-            <span>Chat Zalo tư vấn riêng tư với Cô Hương (096 290 3942)</span>
-          </a>
-        </div>
-
-        {/* Contextual Inline CTA & Cam kết Bảo mật (Solution 5: Đón đầu phụ huynh tại điểm rơi phễu) */}
-        <div className="team-inline-cta-card reveal">
-          <div className="team-inline-cta-header">
-            <span className="team-inline-cta-shield">
-              <Icon name="shield" size={16} />
-              <span>Cam kết bảo mật 100% hồ sơ & hình ảnh của trẻ</span>
-            </span>
-            <h3>Ba mẹ muốn nhận tư vấn định hướng trực tiếp từ các Cô?</h3>
-            <p>
-              Mỗi biểu hiện nhỏ của con đều mang ý nghĩa quan trọng trong giai đoạn phát triển vàng. Đừng ngần ngại kết nối ngay để được Cô Hương và ban chuyên môn lắng nghe, chia sẻ và đề xuất lộ trình phù hợp nhất.
-            </p>
-          </div>
-          <div className="team-inline-cta-actions">
-            <a
-              href="https://zalo.me/0962903942"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="button button--zalo-highlight"
-              data-heatmap-id="cta-team-inline-zalo"
-            >
-              💬 Nhắn tin Zalo với Cô Hương ngay
-            </a>
-            <a
-              href="#contact"
-              className="button button--secondary-outline"
-              data-heatmap-id="cta-team-inline-form"
-              onClick={(e) => {
-                e.preventDefault()
-                document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" })
-              }}
-            >
-              📅 Đặt lịch đánh giá phát triển miễn phí
-            </a>
-          </div>
-          <div className="team-inline-cta-trust-tags">
-            <span>⚡ Phản hồi Zalo trong vòng 3 - 5 phút (kể cả ngoài giờ & cuối tuần)</span>
-            <span>•</span>
-            <span>🔒 Tuyệt đối không chia sẻ thông tin cho bên thứ ba</span>
-            <span>•</span>
-            <span>⭐ Miễn phí 100% buổi trao đổi định hướng ban đầu</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Teacher Detail Modal (Solution 2) */}
-      <TeacherDetailModal
-        isOpen={selectedTeacher !== null}
-        teacher={selectedTeacher}
-        onClose={() => setSelectedTeacher(null)}
-        onConsult={handleConsultTeacher}
-      />
-    </section>
-  )
-}
-
 function Space() {
   const config = useConfig()
   const section = getSection(config, "gallery")
@@ -1097,7 +906,7 @@ function Contact() {
   }
 
   const phone = config.phone || "096 290 3942"
-  const address = config.address || "TDP Duyên Phúc, xã Hưng Hà, Tỉnh Hưng Yên"
+  const address = config.address || "TDP Duyên Phúc, xã Hưng Hà, Tỉnh Thái Bình"
 
   return (
     <section className="contact" id="contact">
@@ -1242,7 +1051,7 @@ function Footer() {
 
   const description =
     section?.description ??
-    "Trang này chỉ là bản thiết kế tham khảo. Nội dung, hình ảnh, đội ngũ, bài viết và thông tin liên hệ cần được trung tâm xác minh trước khi triển khai."
+    "Trang này chỉ là bản thiết kế tham khảo. Nội dung, hình ảnh, bài viết và thông tin liên hệ cần được trung tâm xác minh trước khi triển khai."
 
   return (
     <footer className="footer">
