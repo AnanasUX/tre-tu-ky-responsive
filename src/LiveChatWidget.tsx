@@ -167,6 +167,8 @@ export function LiveChatWidget({
         name: cleanName,
         phone: cleanPhone,
         childAge: "Đang trò chuyện qua Live Chat",
+        need: "Live Chat Website (Hỗ trợ trực tuyến)",
+        message: `Khởi tạo cuộc trò chuyện Live Chat trực tiếp trên Website (Mã phiên: ${sessionId})`,
         note: `Khởi tạo cuộc trò chuyện Live Chat trực tiếp trên Website (Mã phiên: ${sessionId})`,
         source: "Live Chat Website",
         status: "new",
@@ -189,6 +191,11 @@ export function LiveChatWidget({
           const leadChannel = new BroadcastChannel("aurora_leads_channel")
           leadChannel.postMessage({ type: "NEW_LEAD", lead: newLead })
           leadChannel.close()
+        } catch {}
+        try {
+          const syncChannel = new BroadcastChannel("aurora-leads-sync")
+          syncChannel.postMessage({ type: "new_lead", lead: newLead })
+          syncChannel.close()
         } catch {}
       } catch (err) {
         console.warn("Could not save to leads db:", err)
