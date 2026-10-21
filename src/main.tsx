@@ -61,7 +61,9 @@ if (typeof window !== 'undefined') {
   })
 
   // Khởi chạy ghi nhận nhật ký truy cập (kèm IP, Vị trí và Chiến dịch Zalo)
-  trackLandingPageAccess()
+  try {
+    trackLandingPageAccess().catch(() => {})
+  } catch {}
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

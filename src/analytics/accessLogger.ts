@@ -112,11 +112,13 @@ export async function trackLandingPageAccess(): Promise<void> {
   const hash = window.location.hash || "";
 
   // Tránh spam log trong cùng 1 lần refresh phiên (chỉ log mỗi 3 phút cho cùng URL)
-  const lastLogTime = sessionStorage.getItem(SESSION_ACCESS_FLAG);
-  if (lastLogTime && Date.now() - Number(lastLogTime) < 3 * 60 * 1000) {
-    return;
-  }
-  sessionStorage.setItem(SESSION_ACCESS_FLAG, String(Date.now()));
+  try {
+    const lastLogTime = window.sessionStorage?.getItem(SESSION_ACCESS_FLAG);
+    if (lastLogTime && Date.now() - Number(lastLogTime) < 3 * 60 * 1000) {
+      return;
+    }
+    window.sessionStorage?.setItem(SESSION_ACCESS_FLAG, String(Date.now()));
+  } catch {}
 
   const env = getClientEnvironment();
   const { ip, location } = await fetchIpAndLocation();

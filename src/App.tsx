@@ -1224,6 +1224,7 @@ function useScrollEffects(dep: any) {
   const [scrolled, setScrolled] = useState(false)
   const [scrollProgress, setScrollProgress] = useState(0)
   const [showBackToTop, setShowBackToTop] = useState(false)
+  const [activeSection, setActiveSection] = useState("about")
   const lenisRef = useRef<Lenis | null>(null)
 
   useEffect(() => {
@@ -1278,6 +1279,21 @@ function useScrollEffects(dep: any) {
 
     // Initial scroll check
     handleNativeScroll()
+
+    // Hỗ trợ cuộn mượt đến anchor hash ban đầu nếu URL có hash (ví dụ: #resources, #faq, #contact)
+    if (window.location.hash) {
+      const targetHash = window.location.hash
+      setTimeout(() => {
+        try {
+          const targetEl = document.querySelector(targetHash)
+          if (targetEl) {
+            lenis.scrollTo(targetHash, { offset: -70, duration: 1.2 })
+            const cleanId = targetHash.replace("#", "")
+            setActiveSection(cleanId)
+          }
+        } catch {}
+      }, 350)
+    }
 
     return () => {
       lenis.destroy()
