@@ -1,3 +1,4 @@
+import { analyzeUserQuestionAndRespond } from "./autismKnowledgeBase"
 import React, { useState, useEffect, useRef } from "react"
 
 export interface ChatMessage {
@@ -26,31 +27,10 @@ const CHAT_SETTINGS_URL = "https://kvdb.io/RtALwN4JAnjEQUjqKLgAuk/live_chat_sett
 const ADMIN_PRESENCE_URL = "https://kvdb.io/RtALwN4JAnjEQUjqKLgAuk/live_chat_presence"
 const STORAGE_CHAT_KEY = "aurora_live_chat_session_v1"
 
-// Cung cấp câu trả lời tự động thông minh của AI Cô Hương khi vắng mặt
-function generateAiAutoReply(userQuestion: string, customerName: string): string {
-  const q = userQuestion.toLowerCase()
-
-  if (q.includes("chậm nói") || q.includes("bật âm") || q.includes("nói") || q.includes("ngôn ngữ")) {
-    return `Dạ ba/mẹ ${customerName} ơi, đối với trẻ chậm nói hoặc chưa bật âm, giai đoạn vàng can thiệp là từ 18 tháng đến trước 3 tuổi. Tại trung tâm Cô Hương, các cô sẽ sử dụng kỹ thuật kích hoạt âm ngữ kết hợp điều hòa cảm giác và trị liệu 1:1 để con hứng thú giao tiếp tự nhiên. Ba mẹ có thể cho cô biết hiện tại con đã được bao nhiêu tháng tuổi và đã nói được từ đơn nào chưa ạ?`
-  }
-
-  if (q.includes("tự kỷ") || q.includes("hành vi") || q.includes("ăn vạ") || q.includes("la hét") || q.includes("giao tiếp mắt")) {
-    return `Dạ ba/mẹ ${customerName}, với các biểu hiện giảm tương tác mắt, chưa chỉ ngón tay hoặc có hành vi lặp lại, Cô Hương áp dụng phương pháp can thiệp hành vi chức năng ABA phối hợp mô hình TEACCH để giúp con bình tĩnh, tăng khả năng tập trung và thấu hiểu mệnh lệnh. Cô Hương có thể gọi điện trực tiếp qua số Zalo của ba mẹ để hướng dẫn gia đình các kỹ thuật tương tác với con tại nhà ngay tối nay nhé ạ!`
-  }
-
-  if (q.includes("học phí") || q.includes("giá") || q.includes("chi phí") || q.includes("tiền học")) {
-    return `Dạ ba/mẹ ${customerName}, học phí can thiệp tại trung tâm được thiết kế linh hoạt theo ca 1:1 (45 - 60 phút) hoặc ca bán trú, dao động từ 250.000đ - 350.000đ/buổi tùy theo mức độ cần hỗ trợ của từng bé. Đặc biệt, buổi đánh giá phát triển ban đầu của con hoàn toàn MIỄN PHÍ để gia đình an tâm hiểu rõ tình trạng của con trước khi quyết định can thiệp ạ.`
-  }
-
-  if (q.includes("địa chỉ") || q.includes("ở đâu") || q.includes("cơ sở") || q.includes("phòng khám")) {
-    return `Dạ trung tâm Cô Hương hiện có các phòng can thiệp chuyên biệt yên tĩnh, đầy đủ trang thiết bị điều hòa cảm giác tại trung tâm TP. Hà Nội. Cô Hương xin phép gửi định vị bản đồ và hướng dẫn đường đi chi tiết qua số điện thoại/Zalo ${customerName} đã đăng ký để gia đình tiện đưa bé qua tham quan nhé ạ!`
-  }
-
-  if (q.includes("lịch") || q.includes("đánh giá") || q.includes("hẹn") || q.includes("khám") || q.includes("test")) {
-    return `Dạ tuyệt vời quá ạ! Cô Hương tiếp nhận lịch đánh giá của bé nhà mình. Buổi đánh giá sẽ kéo dài khoảng 60 phút bao gồm: Quan sát tương tác của con, kiểm tra thang đo phát triển Denver/M-CHAT và trao đổi định hướng trực tiếp cùng ba mẹ. Chuyên viên trung tâm sẽ liên hệ lại ngay trong ít phút để xếp giờ phù hợp nhất cho gia đình ạ.`
-  }
-
-  return `Dạ Cô Hương đã nhận được câu hỏi của ba/mẹ ${customerName}: "${userQuestion}". Đội ngũ chuyên môn đang ghi nhận hồ sơ và sẽ phản hồi chi tiết ngay cho ba mẹ. Trong lúc chờ đợi, ba mẹ có thể gửi thêm video ngắn quay lại cử chỉ hoặc cách con chơi ở nhà để các cô phân tích chính xác nhất nhé ạ!`
+// Phân tích thông tin phụ huynh và trả lời đúng trọng tâm chuyên môn tự kỷ (hoặc chỉ tiếp nhận nếu ngoài phạm vi)
+function generateAiAutoReply(userQuestion: string, customerName: string, customerPhone?: string): string {
+  const result = analyzeUserQuestionAndRespond(userQuestion, customerName, customerPhone)
+  return result.response
 }
 
 export function LiveChatWidget({
@@ -402,7 +382,7 @@ export function LiveChatWidget({
         } catch {}
 
         // Sinh câu trả lời thông minh dựa trên chuyên môn can thiệp của Cô Hương
-        const aiAnswer = generateAiAutoReply(question, currentSession.customerName)
+        const aiAnswer = generateAiAutoReply(question, currentSession.customerName, currentSession.customerPhone)
 
         const aiMsg: ChatMessage = {
           id: `msg-ai-${Date.now()}`,
