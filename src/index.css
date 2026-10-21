@@ -3208,3 +3208,163 @@ select::placeholder {
   flex-wrap: wrap;
   gap: 12px;
 }
+
+/* ==========================================================================
+   BẢN NÂNG CẤP HỆ THỐNG UX DỰA TRÊN 5 ĐIỂM NGHẼN
+   ========================================================================== */
+
+/* 1. KHẮC PHỤC TRIỆT ĐỂ DEAD CLICKS TRÊN ẢNH CƠ SỞ VẬT CHẤT & THẺ GIÁO VIÊN */
+.gallery-item img,
+.team-card,
+.profile-card,
+.gallery figure img,
+.gallery__figure--interactive img,
+.hero__visual img {
+  cursor: pointer !important;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease !important;
+}
+
+.gallery-item img:hover,
+.team-card:hover,
+.profile-card:hover,
+.gallery figure img:hover,
+.gallery__figure--interactive:hover img,
+.hero__visual img:hover {
+  transform: translateY(-2px) scale(1.015) !important;
+  box-shadow: 0 8px 24px rgba(22, 101, 52, 0.12) !important;
+}
+
+/* 2. TRIỆT TIÊU HIỆN TƯỢNG RAGE CLICKS TRÊN NÚT BẤM & ACCORDION FAQ */
+.button,
+button[type="submit"],
+.btn-zalo-direct,
+.submit-btn {
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.button:active,
+button[type="submit"]:active,
+.btn-zalo-direct:active,
+.submit-btn:active {
+  transform: scale(0.97) !important;
+}
+
+/* FAQ Accordion tốc độ 0.18s siêu mượt triệt tiêu Rage clicks */
+.faq-item__answer {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.faq-item--open .faq-item__answer {
+  grid-template-rows: 1fr !important;
+}
+
+.faq-item > button {
+  touch-action: manipulation !important;
+  min-height: 56px !important;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.faq-item > button:active {
+  background: var(--subtle) !important;
+}
+
+/* 3. KHÓA ZOOM KHÔNG CHỦ Ý & TỐI ƯU CÔNG THÁI HỌC NGÓN CÁI (THUMB ZONE) */
+input[type="text"],
+input[type="tel"],
+input[type="email"],
+select,
+textarea {
+  font-size: 16px !important;
+  touch-action: manipulation !important;
+  min-height: 46px !important;
+}
+
+/* Chuẩn vùng chạm ngón cái tối thiểu 48x48px (Apple HIG & Material Design) */
+.button,
+.nav__cta,
+.header__cta,
+.btn-zalo-direct,
+.submit-btn,
+.faq-item > button {
+  min-height: 48px;
+  touch-action: manipulation;
+}
+
+/* 4. TỐI ƯU HÓA PHỄU CHUYỂN ĐỔI ZALO CAMPAIGN & NÚT TRỰC TIẾP CHÂN KHỐI ĐỘI NGŨ */
+.zalo-direct-cta-card {
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  border: 1.5px solid #86efac;
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-top: 24px;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(22, 101, 52, 0.08);
+}
+
+.zalo-direct-cta-card__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+}
+
+.zalo-direct-cta-card p {
+  color: #166534;
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 14px;
+  line-height: 1.5;
+}
+
+.btn-zalo-direct {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #0068ff 0%, #0052cc 100%);
+  color: #ffffff !important;
+  font-size: 14.5px;
+  font-weight: 700;
+  padding: 13px 26px;
+  border-radius: 999px;
+  text-decoration: none;
+  box-shadow: 0 6px 18px rgba(0, 104, 255, 0.35);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  min-height: 48px;
+  touch-action: manipulation;
+}
+
+.btn-zalo-direct:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 104, 255, 0.45);
+}
+
+/* Hiệu ứng nhịp tim (pulse) dịu mắt cho nút nổi Zalo */
+@keyframes zaloPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 104, 255, 0.6), 0 6px 20px rgba(0, 0, 0, 0.18);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(0, 104, 255, 0), 0 6px 20px rgba(0, 0, 0, 0.18);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 104, 255, 0), 0 6px 20px rgba(0, 0, 0, 0.18);
+  }
+}
+
+.floating-contact__btn--zalo {
+  animation: zaloPulse 2.4s infinite cubic-bezier(0.4, 0, 0.6, 1) !important;
+}
+

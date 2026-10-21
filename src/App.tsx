@@ -375,13 +375,21 @@ function Hero() {
             <span>Đồng hành cùng gia đình</span>
           </div>
         </div>
-        <figure className="hero__visual reveal reveal-delay-2">
+        <figure
+          className="hero__visual reveal reveal-delay-2"
+          onClick={() => {
+            const gallerySection = document.querySelector("#gallery");
+            if (gallerySection) gallerySection.scrollIntoView({ behavior: "smooth" });
+          }}
+          style={{ cursor: "pointer" }}
+          title="Bấm để xem hình ảnh không gian phòng học & cơ sở vật chất"
+        >
           <img
             src={image}
             alt="Không gian học tập ấm áp với vật liệu gỗ tự nhiên"
           />
           <figcaption>
-            Minh hoạ · không phải hình ảnh thực tế của trung tâm
+            🔍 Bấm để khám phá cơ sở vật chất phòng học của trung tâm
           </figcaption>
         </figure>
       </div>
@@ -441,55 +449,6 @@ function Mission() {
             </article>
           ))}
         </div>
-
-        {/* Mini CTA: Đón đầu phụ huynh giữa chặng sau Khối 3 (Lĩnh vực can thiệp) */}
-        <div className="areas-mini-cta reveal reveal-delay-2">
-          <div className="areas-mini-cta__content">
-            <div className="areas-mini-cta__badge">
-              <span>⚡ Tư vấn can thiệp nhanh 1:1</span>
-            </div>
-            <h3>Băn khoăn con đang ở giai đoạn nào trong các lĩnh vực trên?</h3>
-            <p>
-              Giai đoạn 18 – 36 tháng là thời gian vàng không thể lấy lại. Chỉ 15 phút trao đổi cùng Cô Hương để nhận định hướng can thiệp sớm chính xác:
-            </p>
-            <ul className="areas-mini-cta__list">
-              <li>
-                <span className="areas-mini-cta__check">✓</span>
-                <span><strong>Đánh giá phát triển 1:1 miễn phí</strong> qua thang đo chuẩn Denver II & M-CHAT</span>
-              </li>
-              <li>
-                <span className="areas-mini-cta__check">✓</span>
-                <span><strong>Xây dựng kế hoạch can thiệp cá nhân (IEP)</strong> đúng với nhịp phát triển của con</span>
-              </li>
-              <li>
-                <span className="areas-mini-cta__check">✓</span>
-                <span><strong>Hướng dẫn bài tập tương tác, kích hoạt ngôn ngữ tại nhà</strong> cho gia đình</span>
-              </li>
-            </ul>
-          </div>
-          <div className="areas-mini-cta__actions">
-            <a
-              href="https://zalo.me/0962903942"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="button button--zalo-highlight"
-              data-heatmap-id="cta-areas-mini-zalo"
-            >
-              💬 Nhắn Zalo Cô Hương ngay
-            </a>
-            <a
-              href="#contact"
-              className="button button--primary"
-              data-heatmap-id="cta-areas-mini-form"
-              onClick={(e) => {
-                e.preventDefault();
-                document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" });
-              }}
-            >
-              📅 Đăng ký đánh giá miễn phí
-            </a>
-          </div>
-        </div>
       </div>
     </section>
   )
@@ -542,6 +501,55 @@ function Areas() {
               <p>{area.text}</p>
             </article>
           ))}
+        </div>
+
+        {/* Mini CTA: Đón đầu phụ huynh giữa chặng sau Khối 3 (Lĩnh vực can thiệp) */}
+        <div className="areas-mini-cta reveal reveal-delay-2">
+          <div className="areas-mini-cta__content">
+            <div className="areas-mini-cta__badge">
+              <span>⚡ Tư vấn can thiệp nhanh 1:1</span>
+            </div>
+            <h3>Băn khoăn con đang ở giai đoạn nào trong các lĩnh vực trên?</h3>
+            <p>
+              Giai đoạn 18 – 36 tháng là thời gian vàng không thể lấy lại. Chỉ 15 phút trao đổi cùng Cô Hương để nhận định hướng can thiệp sớm chính xác:
+            </p>
+            <ul className="areas-mini-cta__list">
+              <li>
+                <span className="areas-mini-cta__check">✓</span>
+                <span><strong>Đánh giá phát triển 1:1 miễn phí</strong> qua thang đo chuẩn Denver II & M-CHAT</span>
+              </li>
+              <li>
+                <span className="areas-mini-cta__check">✓</span>
+                <span><strong>Xây dựng kế hoạch can thiệp cá nhân (IEP)</strong> đúng với nhịp phát triển của con</span>
+              </li>
+              <li>
+                <span className="areas-mini-cta__check">✓</span>
+                <span><strong>Hướng dẫn bài tập tương tác, kích hoạt ngôn ngữ tại nhà</strong> cho gia đình</span>
+              </li>
+            </ul>
+          </div>
+          <div className="areas-mini-cta__actions">
+            <a
+              href="https://zalo.me/0962903942"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="button button--zalo-highlight"
+              data-heatmap-id="cta-areas-mini-zalo"
+            >
+              💬 Nhắn Zalo Cô Hương ngay
+            </a>
+            <a
+              href="#contact"
+              className="button button--primary"
+              data-heatmap-id="cta-areas-mini-form"
+              onClick={(e) => {
+                e.preventDefault();
+                document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" });
+              }}
+            >
+              📅 Đăng ký đánh giá miễn phí
+            </a>
+          </div>
         </div>
       </div>
     </section>
@@ -678,7 +686,7 @@ function Team() {
         <div className="team-grid">
           {members.map((item, index) => (
             <article
-              className={`profile-card profile-card--interactive reveal reveal-delay-${(index % 4) + 1}`}
+              className={`profile-card profile-card--interactive team-card reveal reveal-delay-${(index % 4) + 1}`}
               key={`${item.name}-${index}`}
               onClick={() => handleTeacherClick(item)}
               role="button"
@@ -715,6 +723,24 @@ function Team() {
               </div>
             </article>
           ))}
+        </div>
+
+        {/* Nút phụ trợ Zalo đặt ngay chân khối Đội ngũ (Tối ưu phễu chuyển đổi Zalo Campaign) */}
+        <div className="zalo-direct-cta-card reveal reveal-delay-2">
+          <div className="zalo-direct-cta-card__badge">
+            <Icon name="shield" size={15} />
+            <span>Cam kết bảo mật 100% thông tin gia đình</span>
+          </div>
+          <p>Ba mẹ muốn trao đổi riêng tư về tình trạng của con với Cô Hương?</p>
+          <a
+            href="https://zalo.me/0962903942"
+            className="btn-zalo-direct"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-heatmap-id="cta-team-zalo-direct"
+          >
+            <span>Chat Zalo tư vấn riêng tư với Cô Hương (096 290 3942)</span>
+          </a>
         </div>
 
         {/* Contextual Inline CTA & Cam kết Bảo mật (Solution 5: Đón đầu phụ huynh tại điểm rơi phễu) */}
@@ -823,7 +849,7 @@ function Space() {
         <SectionTitle title={title} description={description} />
         <div className="gallery">
           <figure
-            className="gallery__main gallery__figure--interactive reveal"
+            className="gallery__main gallery__figure--interactive gallery-item reveal"
             onClick={() => openLightbox(0)}
             role="button"
             tabIndex={0}
@@ -846,7 +872,7 @@ function Space() {
           {galleryImages.slice(1, 3).map((item, idx) => (
             <figure
               key={idx + 1}
-              className="gallery__figure--interactive"
+              className="gallery__figure--interactive gallery-item"
               onClick={() => openLightbox(idx + 1)}
               role="button"
               tabIndex={0}
@@ -1015,7 +1041,7 @@ function Contact() {
   const description =
     section?.description ??
     "Mỗi đứa trẻ đều là một điều kỳ diệu với nhịp phát triển riêng. Hãy để lại thông tin để Cô Hương và chuyên viên tâm lý liên hệ lắng nghe, giải đáp băn khoăn và đề xuất lộ trình hỗ trợ phù hợp nhất cho con."
-  const primaryAction = section?.primaryAction ?? "Gửi đăng ký tư vấn"
+  const primaryAction = section?.primaryAction ?? "Đăng ký tư vấn ngay (Miễn phí)"
 
   const [submitting, setSubmitting] = useState(false)
   const [sent, setSent] = useState(false)
@@ -1054,8 +1080,8 @@ function Contact() {
     } catch (err) {
       console.warn("Could not save consultation lead:", err)
     } finally {
-      // Giữ phản hồi thị giác tối thiểu 800ms để chống nhấp dồn dập (Rage clicks)
-      await new Promise((r) => setTimeout(r, 800));
+      // Giữ phản hồi thị giác tối thiểu 1.5s để chống nhấp dồn dập (Rage clicks & Double submission)
+      await new Promise((r) => setTimeout(r, 1500));
       setSubmitting(false);
       setSent(true);
     }
