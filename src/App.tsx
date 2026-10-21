@@ -441,6 +441,55 @@ function Mission() {
             </article>
           ))}
         </div>
+
+        {/* Mini CTA: Đón đầu phụ huynh giữa chặng sau Khối 3 (Lĩnh vực can thiệp) */}
+        <div className="areas-mini-cta reveal reveal-delay-2">
+          <div className="areas-mini-cta__content">
+            <div className="areas-mini-cta__badge">
+              <span>⚡ Tư vấn can thiệp nhanh 1:1</span>
+            </div>
+            <h3>Băn khoăn con đang ở giai đoạn nào trong các lĩnh vực trên?</h3>
+            <p>
+              Giai đoạn 18 – 36 tháng là thời gian vàng không thể lấy lại. Chỉ 15 phút trao đổi cùng Cô Hương để nhận định hướng can thiệp sớm chính xác:
+            </p>
+            <ul className="areas-mini-cta__list">
+              <li>
+                <span className="areas-mini-cta__check">✓</span>
+                <span><strong>Đánh giá phát triển 1:1 miễn phí</strong> qua thang đo chuẩn Denver II & M-CHAT</span>
+              </li>
+              <li>
+                <span className="areas-mini-cta__check">✓</span>
+                <span><strong>Xây dựng kế hoạch can thiệp cá nhân (IEP)</strong> đúng với nhịp phát triển của con</span>
+              </li>
+              <li>
+                <span className="areas-mini-cta__check">✓</span>
+                <span><strong>Hướng dẫn bài tập tương tác, kích hoạt ngôn ngữ tại nhà</strong> cho gia đình</span>
+              </li>
+            </ul>
+          </div>
+          <div className="areas-mini-cta__actions">
+            <a
+              href="https://zalo.me/0962903942"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="button button--zalo-highlight"
+              data-heatmap-id="cta-areas-mini-zalo"
+            >
+              💬 Nhắn Zalo Cô Hương ngay
+            </a>
+            <a
+              href="#contact"
+              className="button button--primary"
+              data-heatmap-id="cta-areas-mini-form"
+              onClick={(e) => {
+                e.preventDefault();
+                document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" });
+              }}
+            >
+              📅 Đăng ký đánh giá miễn phí
+            </a>
+          </div>
+        </div>
       </div>
     </section>
   )
@@ -899,10 +948,26 @@ function Faq() {
     "Một vài thông tin cơ bản trước khi gia đình bắt đầu. Nếu chưa tìm thấy câu trả lời phù hợp, hãy gửi câu hỏi cho chúng tôi."
 
   const defaultFaqs: [string, string][] = [
-    ["Tôi có thể trao đổi với chuyên viên như thế nào?", "Trung tâm cần xác minh phương thức trao đổi, tần suất cập nhật và cách thức phối hợp với gia đình."],
-    ["Phụ huynh có thể tham gia trong quá trình hỗ trợ không?", "Hình thức tham gia của phụ huynh cần được thống nhất theo từng mục tiêu và xác nhận bởi trung tâm."],
-    ["Thời lượng và lịch hỗ trợ được sắp xếp như thế nào?", "Thời lượng, lịch và hình thức hỗ trợ chưa được công bố trong bản thiết kế này. Vui lòng chờ thông tin chính thức."],
-    ["Thông tin gia đình được sử dụng ra sao?", "Chính sách quyền riêng tư và quy trình lưu trữ dữ liệu cần được duyệt trước khi biểu mẫu được kết nối vận hành."],
+    [
+      "Tôi có thể trao đổi với Cô Hương và giáo viên như thế nào?",
+      "Ba mẹ được trao đổi trực tiếp 1:1 với Cô Hương và giáo viên phụ trách sau mỗi ca học, xem sổ theo dõi tiến bộ hằng ngày và trao đổi qua Zalo chuyên môn để đồng bộ phương pháp dạy con tại nhà."
+    ],
+    [
+      "Phụ huynh có thể tham gia vào các buổi can thiệp của con không?",
+      "Hoàn toàn có thể. Trung tâm khuyến khích ba mẹ tham gia quan sát và được hướng dẫn kỹ thuật tương tác Floortime/ABA trong các buổi can thiệp để tự tin tiếp tục đồng hành cùng con tại gia đình."
+    ],
+    [
+      "Thời lượng mỗi ca học và lịch can thiệp được sắp xếp ra sao?",
+      "Mỗi ca học cá nhân 1:1 kéo dài từ 45 – 60 phút. Trung tâm sắp xếp lịch học linh hoạt từ Thứ 2 đến Thứ 7 (có các ca sáng, chiều và ngoài giờ hành chính) để thuận tiện cho việc đưa đón của gia đình."
+    ],
+    [
+      "Thông tin và hình ảnh của con được bảo mật như thế nào?",
+      "Trung tâm cam kết bảo mật 100% hồ sơ đánh giá, video và hình ảnh của trẻ. Mọi dữ liệu chỉ phục vụ chuyên môn nội bộ và tuyệt đối không chia sẻ cho bên thứ ba."
+    ],
+    [
+      "Buổi đánh giá phát triển ban đầu có mất phí không?",
+      "Buổi đánh giá ban đầu kéo dài 60 phút hoàn toàn MIỄN PHÍ. Chuyên viên sẽ kiểm tra trực tiếp qua thang đo chuẩn quốc tế (Denver II, M-CHAT-R/F) và tư vấn lộ trình phù hợp nhất cho gia đình."
+    ]
   ]
 
   const items: [string, string][] = section?.items && section.items.length > 0
@@ -989,8 +1054,10 @@ function Contact() {
     } catch (err) {
       console.warn("Could not save consultation lead:", err)
     } finally {
-      setSubmitting(false)
-      setSent(true)
+      // Giữ phản hồi thị giác tối thiểu 800ms để chống nhấp dồn dập (Rage clicks)
+      await new Promise((r) => setTimeout(r, 800));
+      setSubmitting(false);
+      setSent(true);
     }
   }
 
@@ -1063,7 +1130,14 @@ function Contact() {
                 />
               </div>
               <div className="form-field">
-                <label htmlFor="phone">Số zalo liên hệ <span style={{ color: "var(--primary)" }}>*</span></label>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                  <label htmlFor="phone" style={{ margin: 0 }}>
+                    Số Zalo liên hệ <span style={{ color: "var(--primary)" }}>*</span>
+                  </label>
+                  <span style={{ fontSize: "11.5px", color: "#16a34a", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                    🔒 Cam kết bảo mật 100%
+                  </span>
+                </div>
                 <input
                   id="phone"
                   name="phone"
@@ -1077,26 +1151,18 @@ function Contact() {
                 />
               </div>
               <div className="form-field">
-                <label htmlFor="need">Tình trạng / Nhu cầu của con</label>
-                <select id="need" name="need" disabled={submitting}>
-                  <option value="Can thiệp sớm & đánh giá ban đầu">Can thiệp sớm & đánh giá phát triển ban đầu</option>
-                  <option value="Chậm nói / Âm ngữ trị liệu">Trẻ chậm nói / Cần âm ngữ trị liệu</option>
-                  <option value="Tự kỷ / Kém tương tác xã hội">Biểu hiện tự kỷ / Kém tương tác mắt & xã hội</option>
-                  <option value="Điều hòa cảm giác & vận động OT">Khó điều hòa cảm giác / Rối loạn vận động (OT)</option>
-                  <option value="Can thiệp hành vi ABA">Can thiệp hành vi ứng dụng (ABA)</option>
-                  <option value="Tiền tiểu học hòa nhập">Chuẩn bị vào lớp 1 hòa nhập</option>
-                  <option value="Khác">Nhu cầu khác</option>
-                </select>
-              </div>
-              <div className="form-field">
-                <label htmlFor="message">Chia sẻ thêm về độ tuổi hoặc biểu hiện của con (tuỳ chọn)</label>
+                <label htmlFor="message">
+                  Độ tuổi & Biểu hiện của con (chậm nói, khó giao tiếp, ăn vạ...) <span style={{ color: "var(--primary)" }}>*</span>
+                </label>
                 <textarea
                   id="message"
                   name="message"
-                  placeholder="Ví dụ: Con 28 tháng tuổi, chưa biết chỉ tay, hay lặp lời..."
+                  required
+                  placeholder="Ví dụ: Bé 2 tuổi rưỡi, chưa nói được từ đơn, gọi tên không quay đầu, hay đi nhón chân..."
                   rows={3}
                   disabled={submitting}
                 />
+                <input type="hidden" name="need" value="Can thiệp sớm & đánh giá phát triển" />
               </div>
               <label className="checkbox">
                 <input
