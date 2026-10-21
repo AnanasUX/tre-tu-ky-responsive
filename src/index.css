@@ -1645,3 +1645,23 @@ a.contact__info-item:hover {
 }
 
 
+
+/* Hỗ trợ hiển thị dock bên trái khi người dùng chọn trong quản trị */
+.floating-contact--left {
+  right: auto;
+  left: 24px;
+}
+.back-to-top--left {
+  right: auto;
+  left: 24px;
+}
+@media (max-width: 640px) {
+  .floating-contact--left {
+    right: auto;
+    left: 16px;
+  }
+  .back-to-top--left {
+    right: auto;
+    left: 16px;
+  }
+}

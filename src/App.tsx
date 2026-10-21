@@ -982,14 +982,16 @@ function ScrollProgressBar({ progress }: { progress: number }) {
 function BackToTop({
   visible,
   onScrollToTop,
+  position = "right",
 }: {
   visible: boolean
   onScrollToTop: () => void
+  position?: "right" | "left"
 }) {
   return (
     <button
       aria-label="Cuộn lên đầu trang"
-      className={`back-to-top ${visible ? "is-visible" : ""}`}
+      className={`back-to-top ${visible ? "is-visible" : ""} ${position === "left" ? "back-to-top--left" : ""}`}
       onClick={onScrollToTop}
       type="button"
       data-heatmap-id="btn-back-to-top"
@@ -1002,48 +1004,90 @@ function BackToTop({
 
 function FloatingContactBar({
   phone,
-  facebook = "https://www.facebook.com",
+  facebook,
+  zalo,
+  enableFacebook = true,
+  enableZalo = true,
+  enablePhone = true,
+  enablePulse = true,
+  position = "right",
 }: {
-  phone: string
+  phone?: string
   facebook?: string
+  zalo?: string
+  enableFacebook?: boolean
+  enableZalo?: boolean
+  enablePhone?: boolean
+  enablePulse?: boolean
+  position?: "right" | "left"
 }) {
-  const cleanPhone = phone.replace(/[^0-9]/g, "") || "0962903942"
+  const cleanPhone = (phone || "").replace(/[^0-9]/g, "") || "0962903942"
+
+  let zaloLink = "https://zalo.me/0962903942"
+  if (zalo && zalo.trim()) {
+    const raw = zalo.trim()
+    if (raw.startsWith("http://") || raw.startsWith("https://")) {
+      zaloLink = raw
+    } else {
+      const cleanZaloPhone = raw.replace(/[^0-9]/g, "")
+      zaloLink = `https://zalo.me/${cleanZaloPhone || cleanPhone}`
+    }
+  } else {
+    zaloLink = `https://zalo.me/${cleanPhone}`
+  }
+
+  const fbLink = facebook && facebook.trim() ? facebook.trim() : "https://www.facebook.com"
+  const phoneCall = `tel:${cleanPhone}`
+
+  if (!enableFacebook && !enableZalo && !enablePhone) {
+    return null
+  }
+
   return (
-    <div className="floating-contact" aria-label="Liên hệ nhanh">
-      <a
-        className="floating-contact__btn floating-contact__btn--facebook"
-        href={facebook}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Nhắn tin Facebook tư vấn"
-        title="Nhắn tin Facebook tư vấn"
-        data-heatmap-id="cta-float-facebook"
-      >
-        <span className="floating-contact__pulse" />
-        <Icon name="facebook" size={20} />
-      </a>
-      <a
-        className="floating-contact__btn floating-contact__btn--zalo"
-        href={`https://zalo.me/${cleanPhone}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Nhắn tin Zalo tư vấn"
-        title="Nhắn tin Zalo tư vấn"
-        data-heatmap-id="cta-float-zalo"
-      >
-        <span className="floating-contact__pulse" />
-        <span className="floating-contact__text">Zalo</span>
-      </a>
-      <a
-        className="floating-contact__btn floating-contact__btn--phone"
-        href={`tel:${cleanPhone}`}
-        aria-label={`Gọi hotline tư vấn ${phone}`}
-        title={`Gọi hotline tư vấn ${phone}`}
-        data-heatmap-id="cta-float-phone"
-      >
-        <span className="floating-contact__pulse" />
-        <Icon name="phone" size={20} />
-      </a>
+    <div
+      className={`floating-contact ${position === "left" ? "floating-contact--left" : ""}`}
+      aria-label="Liên hệ nhanh"
+    >
+      {enableFacebook && (
+        <a
+          className="floating-contact__btn floating-contact__btn--facebook"
+          href={fbLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Nhắn tin Facebook tư vấn"
+          title="Nhắn tin Facebook tư vấn"
+          data-heatmap-id="cta-float-facebook"
+        >
+          {enablePulse && <span className="floating-contact__pulse" />}
+          <Icon name="facebook" size={20} />
+        </a>
+      )}
+      {enableZalo && (
+        <a
+          className="floating-contact__btn floating-contact__btn--zalo"
+          href={zaloLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Nhắn tin Zalo tư vấn"
+          title="Nhắn tin Zalo tư vấn"
+          data-heatmap-id="cta-float-zalo"
+        >
+          {enablePulse && <span className="floating-contact__pulse" />}
+          <span className="floating-contact__text">Zalo</span>
+        </a>
+      )}
+      {enablePhone && (
+        <a
+          className="floating-contact__btn floating-contact__btn--phone"
+          href={phoneCall}
+          aria-label={`Gọi hotline tư vấn ${phone || "096 290 3942"}`}
+          title={`Gọi hotline tư vấn ${phone || "096 290 3942"}`}
+          data-heatmap-id="cta-float-phone"
+        >
+          {enablePulse && <span className="floating-contact__pulse" />}
+          <Icon name="phone" size={20} />
+        </a>
+      )}
     </div>
   )
 }
@@ -1201,8 +1245,20 @@ export default function App() {
       <FloatingContactBar
         phone={config.phone || "096 290 3942"}
         facebook={config.facebook || "https://www.facebook.com"}
+        zalo={config.zalo || config.phone || "096 290 3942"}
+        enableFacebook={config.enableFloatingFacebook !== false}
+        enableZalo={config.enableFloatingZalo !== false}
+        enablePhone={config.enableFloatingPhone !== false}
+        enablePulse={config.enableFloatingPulse !== false}
+        position={config.floatingPosition || "right"}
       />
-      <BackToTop visible={showBackToTop} onScrollToTop={scrollToTop} />
+      {config.enableBackToTop !== false && (
+        <BackToTop
+          visible={showBackToTop}
+          onScrollToTop={scrollToTop}
+          position={config.floatingPosition || "right"}
+        />
+      )}
     </LandingConfigContext.Provider>
   )
 }
