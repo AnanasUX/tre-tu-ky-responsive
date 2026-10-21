@@ -880,7 +880,7 @@ function Contact() {
                 />
               </div>
               <div className="form-field">
-                <label htmlFor="phone">Số điện thoại liên hệ <span style={{ color: "var(--primary)" }}>*</span></label>
+                <label htmlFor="phone">Số zalo liên hệ <span style={{ color: "var(--primary)" }}>*</span></label>
                 <input
                   id="phone"
                   name="phone"
