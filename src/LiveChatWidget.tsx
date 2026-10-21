@@ -23,6 +23,7 @@ export interface LiveChatSession {
 const LEADS_API_URL = "https://kvdb.io/RtALwN4JAnjEQUjqKLgAuk/consultation_leads"
 const CHAT_SESSIONS_URL = "https://kvdb.io/RtALwN4JAnjEQUjqKLgAuk/live_chat_sessions"
 const CHAT_SETTINGS_URL = "https://kvdb.io/RtALwN4JAnjEQUjqKLgAuk/live_chat_settings"
+const ADMIN_PRESENCE_URL = "https://kvdb.io/RtALwN4JAnjEQUjqKLgAuk/live_chat_presence"
 const STORAGE_CHAT_KEY = "aurora_live_chat_session_v1"
 
 // Cung cấp câu trả lời tự động thông minh của AI Cô Hương khi vắng mặt
@@ -73,6 +74,7 @@ export function LiveChatWidget({
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const pollTimerRef = useRef<any>(null)
+  const lastAdminPresenceRef = useRef<number>(0)
 
   // 1. Tải phiên chat từ LocalStorage nếu khách đã đăng ký trước đó
   useEffect(() => {
@@ -127,6 +129,13 @@ export function LiveChatWidget({
         if (event.data?.type === "SESSION_UPDATED" && event.data?.session?.id === session.id) {
           setSession(event.data.session)
           localStorage.setItem(STORAGE_CHAT_KEY, JSON.stringify(event.data.session))
+        }
+        if (event.data?.type === "ADMIN_PRESENCE") {
+          if (event.data.adminOnline) {
+            lastAdminPresenceRef.current = Date.now()
+          } else {
+            lastAdminPresenceRef.current = 0
+          }
         }
       }
     } catch {}
@@ -313,10 +322,45 @@ export function LiveChatWidget({
     triggerAiAutoReplyIfNeeded(text, updatedSession)
   }
 
+  // Kiểm tra xem Quản trị viên / Nhân viên có đang trực tiếp tại https://ananasux.github.io/xay-kenh-quan-tri/#/chat-khach-hang hay không
+  const checkIsAdminOnline = async (): Promise<boolean> => {
+    // 1. Kiểm tra BroadcastChannel nếu cùng trình duyệt
+    if (lastAdminPresenceRef.current > 0 && Date.now() - lastAdminPresenceRef.current < 15000) {
+      return true
+    }
+
+    // 2. Kiểm tra KVDB presence nếu mở ở máy khác
+    try {
+      const res = await fetch(ADMIN_PRESENCE_URL, { cache: "no-store" })
+      if (res.ok) {
+        const data = await res.json()
+        if (
+          data &&
+          data.adminOnline === true &&
+          data.activePath === "/chat-khach-hang" &&
+          data.lastHeartbeat &&
+          Date.now() - data.lastHeartbeat < 18000
+        ) {
+          lastAdminPresenceRef.current = data.lastHeartbeat
+          return true
+        }
+      }
+    } catch {}
+
+    return false
+  }
+
   // Tự động kích hoạt phản hồi AI sau 3.5 giây nếu không có quản trị viên can thiệp
   const triggerAiAutoReplyIfNeeded = async (question: string, currentSession: LiveChatSession) => {
     try {
-      // Đọc cấu hình live_chat_settings
+      // 1. NẾU QUẢN TRỊ VIÊN ĐANG ĐỨNG Ở /chat-khach-hang THÌ AI TUYỆT ĐỐI KHÔNG NHẮN TIN
+      const adminOnline = await checkIsAdminOnline()
+      if (adminOnline) {
+        console.log("Admin is actively present on /chat-khach-hang. Suppressing AI auto-reply to guarantee genuine human support.")
+        return
+      }
+
+      // 2. Đọc cấu hình live_chat_settings
       let aiEnabled = true
       try {
         const settingsRes = await fetch(CHAT_SETTINGS_URL, { cache: "no-store" })
@@ -334,6 +378,29 @@ export function LiveChatWidget({
       setAiTyping(true)
 
       setTimeout(async () => {
+        // Kiểm tra lại lần 2 trước khi AI phát tin: Quản trị viên vừa vào trang hoặc đã phản hồi chưa?
+        const adminStillActive = await checkIsAdminOnline()
+        if (adminStillActive) {
+          setAiTyping(false)
+          return
+        }
+
+        // Kiểm tra xem tin nhắn mới nhất trong session có phải do quản trị viên vừa gửi không
+        try {
+          const sessRes = await fetch(CHAT_SESSIONS_URL, { cache: "no-store" })
+          if (sessRes.ok) {
+            const allSessions: LiveChatSession[] = await sessRes.json()
+            const current = Array.isArray(allSessions) ? allSessions.find((s) => s.id === currentSession.id) : null
+            if (current && current.messages.length > 0) {
+              const lastMsg = current.messages[current.messages.length - 1]
+              if (lastMsg.sender === "admin") {
+                setAiTyping(false)
+                return
+              }
+            }
+          }
+        } catch {}
+
         // Sinh câu trả lời thông minh dựa trên chuyên môn can thiệp của Cô Hương
         const aiAnswer = generateAiAutoReply(question, currentSession.customerName)
 
