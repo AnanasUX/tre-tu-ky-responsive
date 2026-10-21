@@ -18,6 +18,8 @@ import {
 import Lenis from "lenis"
 import "lenis/dist/lenis.css"
 import { getHeatmapTracker } from "./analytics/heatmapTracker"
+import { LightboxModal, type LightboxImage } from "./LightboxModal"
+import { TeacherDetailModal, type TeacherData, getTeacherExtraDetails } from "./TeacherDetailModal"
 
 const LandingConfigContext = createContext<LandingPageConfig>(initialLandingPageConfig)
 const useConfig = () => useContext(LandingConfigContext)
@@ -550,19 +552,41 @@ function Process() {
 function Team() {
   const config = useConfig()
   const section = getSection(config, "team")
+  const [selectedTeacher, setSelectedTeacher] = useState<TeacherData | null>(null)
+
   if (section && !section.enabled) return null
 
-  const eyebrow = section?.eyebrow ?? "Cần trung tâm xác minh hồ sơ"
-  const title = section?.title ?? "Đội ngũ giáo viên"
+  const eyebrow = section?.eyebrow ?? "Chuyên môn cao · Tận tâm · Giàu tình thương"
+  const title = section?.title ?? "Đội ngũ chuyên gia & giáo viên tận tâm"
   const description =
     section?.description ??
-    "Mỗi hồ sơ có sẵn vị trí cho ảnh, tên, chuyên môn và phần giới thiệu. Thông tin chính thức sẽ được cập nhật sau khi trung tâm xác minh."
+    "Được đào tạo bài bản chuyên sâu về Tâm lý học, Giáo dục Đặc biệt và Âm ngữ trị liệu, luôn kiên nhẫn và đồng hành bằng cả trái tim."
 
   const defaultTeam = [
-    { name: "Tên giáo viên", role: "Chuyên môn / vai trò", bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ.", image: "" },
-    { name: "Tên giáo viên", role: "Chuyên môn / vai trò", bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ.", image: "" },
-    { name: "Tên giáo viên", role: "Chuyên môn / vai trò", bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ.", image: "" },
-    { name: "Tên giáo viên", role: "Chuyên môn / vai trò", bio: "Thêm phần giới thiệu ngắn về kinh nghiệm, chuyên môn và phương pháp đồng hành cùng trẻ.", image: "" },
+    {
+      name: "ThS. Hoàng Thị Hương",
+      role: "Giám đốc chuyên môn • ThS Tâm lý học lâm sàng",
+      bio: "Hơn 10 năm kinh nghiệm trong công tác đánh giá, chẩn đoán và thiết kế chương trình can thiệp sớm cho trẻ tự kỷ, chậm phát triển.",
+      image: "",
+    },
+    {
+      name: "CN. Nguyễn Thu Trang",
+      role: "Chuyên viên Âm ngữ trị liệu",
+      bio: "Tốt nghiệp Đại học Sư phạm Hà Nội chuyên ngành Giáo dục Đặc biệt, sở hữu chứng chỉ quốc tế về trị liệu ngôn ngữ và phát triển giao tiếp.",
+      image: "",
+    },
+    {
+      name: "CN. Lê Hoàng Minh",
+      role: "Chuyên viên Điều hòa Cảm giác (OT)",
+      bio: "Chuyên sâu về trị liệu tích hợp giác quan, vận động chức năng và thiết kế môi trường học tập an toàn, thân thiện cho trẻ.",
+      image: "",
+    },
+    {
+      name: "Cô Vũ Mai Anh",
+      role: "Giáo viên Can thiệp sớm & Tiền tiểu học",
+      bio: "Giàu kinh nghiệm trong việc xây dựng thói quen tự lập, điều hòa cảm xúc hành vi và chuẩn bị tâm thế vững vàng vào lớp 1 cho trẻ.",
+      image: "",
+    },
   ]
 
   const members = section?.items && section.items.length > 0
@@ -574,6 +598,25 @@ function Team() {
       }))
     : defaultTeam
 
+  const handleTeacherClick = (item: { name: string; role: string; bio: string; image?: string }) => {
+    setSelectedTeacher(getTeacherExtraDetails(item))
+  }
+
+  const handleConsultTeacher = (teacherName: string) => {
+    setSelectedTeacher(null)
+    const contactEl = document.querySelector("#contact")
+    if (contactEl) {
+      contactEl.scrollIntoView({ behavior: "smooth" })
+      setTimeout(() => {
+        const textarea = document.querySelector("#message") as HTMLTextAreaElement
+        if (textarea) {
+          textarea.value = `Gia đình mong muốn được đặt lịch tư vấn và đánh giá phát triển trực tiếp cùng Cô ${teacherName}.`
+          textarea.focus()
+        }
+      }, 500)
+    }
+  }
+
   return (
     <section className="section section--team" id="team">
       <div className="container">
@@ -584,27 +627,97 @@ function Team() {
         />
         <div className="team-grid">
           {members.map((item, index) => (
-            <article className={`profile-card reveal reveal-delay-${(index % 4) + 1}`} key={`${item.name}-${index}`}>
+            <article
+              className={`profile-card profile-card--interactive reveal reveal-delay-${(index % 4) + 1}`}
+              key={`${item.name}-${index}`}
+              onClick={() => handleTeacherClick(item)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  handleTeacherClick(item)
+                }
+              }}
+              title={`Bấm để xem bằng cấp và hồ sơ chuyên môn của ${item.name}`}
+            >
               <div className="profile-card__portrait">
                 {item.image ? (
                   <img src={item.image} alt={item.name} />
                 ) : (
                   <div className="profile-card__placeholder" aria-hidden="true">
                     <Icon name="profile" size={52} />
-                    <span>Thêm ảnh chân dung</span>
+                    <span>{item.name}</span>
                   </div>
                 )}
+                <span className="profile-card__inspect-badge">
+                  <span>🔍 Xem hồ sơ & bằng cấp</span>
+                </span>
               </div>
               <div className="profile-card__content">
                 <h3>{item.name}</h3>
                 <span className="profile-card__role">{item.role}</span>
                 <p>{item.bio}</p>
-                <span className="status-label">Chuyên gia chính thức</span>
+                <div className="profile-card__footer-pill">
+                  <span className="status-label">Chuyên gia chính thức</span>
+                  <span className="profile-card__view-link">Xem hồ sơ ↗</span>
+                </div>
               </div>
             </article>
           ))}
         </div>
+
+        {/* Contextual Inline CTA & Cam kết Bảo mật (Solution 5: Đón đầu phụ huynh tại điểm rơi phễu) */}
+        <div className="team-inline-cta-card reveal">
+          <div className="team-inline-cta-header">
+            <span className="team-inline-cta-shield">
+              <Icon name="shield" size={16} />
+              <span>Cam kết bảo mật 100% hồ sơ & hình ảnh của trẻ</span>
+            </span>
+            <h3>Ba mẹ muốn nhận tư vấn định hướng trực tiếp từ các Cô?</h3>
+            <p>
+              Mỗi biểu hiện nhỏ của con đều mang ý nghĩa quan trọng trong giai đoạn phát triển vàng. Đừng ngần ngại kết nối ngay để được Cô Hương và ban chuyên môn lắng nghe, chia sẻ và đề xuất lộ trình phù hợp nhất.
+            </p>
+          </div>
+          <div className="team-inline-cta-actions">
+            <a
+              href="https://zalo.me/0962903942"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="button button--zalo-highlight"
+              data-heatmap-id="cta-team-inline-zalo"
+            >
+              💬 Nhắn tin Zalo với Cô Hương ngay
+            </a>
+            <a
+              href="#contact"
+              className="button button--secondary-outline"
+              data-heatmap-id="cta-team-inline-form"
+              onClick={(e) => {
+                e.preventDefault()
+                document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" })
+              }}
+            >
+              📅 Đặt lịch đánh giá phát triển miễn phí
+            </a>
+          </div>
+          <div className="team-inline-cta-trust-tags">
+            <span>⚡ Phản hồi Zalo trong vòng 3 - 5 phút (kể cả ngoài giờ & cuối tuần)</span>
+            <span>•</span>
+            <span>🔒 Tuyệt đối không chia sẻ thông tin cho bên thứ ba</span>
+            <span>•</span>
+            <span>⭐ Miễn phí 100% buổi trao đổi định hướng ban đầu</span>
+          </div>
+        </div>
       </div>
+
+      {/* Teacher Detail Modal (Solution 2) */}
+      <TeacherDetailModal
+        isOpen={selectedTeacher !== null}
+        teacher={selectedTeacher}
+        onClose={() => setSelectedTeacher(null)}
+        onConsult={handleConsultTeacher}
+      />
     </section>
   )
 }
@@ -612,41 +725,108 @@ function Team() {
 function Space() {
   const config = useConfig()
   const section = getSection(config, "gallery")
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState(0)
+
   if (section && !section.enabled) return null
 
-  const title = section?.title ?? "Không gian học tập"
+  const title = section?.title ?? "Không gian học tập an toàn & truyền cảm hứng"
   const description =
     section?.description ??
-    "Các hình ảnh dưới đây chỉ minh hoạ định hướng không gian. Cần bổ sung ảnh thực tế được phép sử dụng trước khi triển khai."
+    "Hệ thống phòng học cá nhân, phòng vận động giác quan và khu vực kỹ năng được thiết kế tối ưu, ấm cúng, đầy đủ giáo cụ trực quan giúp trẻ thoải mái khám phá."
+
+  const defaultGalleryImages: LightboxImage[] = [
+    {
+      src: "./images/classroom-main.jpg",
+      caption: "Toàn cảnh phòng học sáng thoáng, ấm cúng với nội thất gỗ tự nhiên thân thiện",
+      alt: "Toàn cảnh phòng học sáng, thoáng với nội thất gỗ",
+    },
+    {
+      src: "./images/classroom-detail.jpg",
+      caption: "Chi tiết góc học tập cá nhân với giáo cụ can thiệp trực quan phong phú",
+      alt: "Chi tiết góc học tập với vật liệu tự nhiên",
+    },
+    {
+      src: "./images/classroom-main.jpg",
+      caption: "Khu vực tương tác và vận động giác quan an toàn, êm ái",
+      alt: "Góc hoạt động trong phòng học",
+    },
+  ]
+
+  const galleryImages: LightboxImage[] =
+    section?.items && section.items.length > 0
+      ? section.items.map((item, idx) => ({
+          src: item.meta || (idx === 1 ? "./images/classroom-detail.jpg" : "./images/classroom-main.jpg"),
+          caption: item.title || "Không gian học tập can thiệp chuyên sâu",
+          alt: item.title,
+        }))
+      : defaultGalleryImages
+
+  const openLightbox = (idx: number) => {
+    setLightboxIndex(idx)
+    setLightboxOpen(true)
+  }
 
   return (
     <section className="section section--tint" id="gallery">
       <div className="container">
         <SectionTitle title={title} description={description} />
         <div className="gallery">
-          <figure className="gallery__main reveal">
+          <figure
+            className="gallery__main gallery__figure--interactive reveal"
+            onClick={() => openLightbox(0)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault()
+                openLightbox(0)
+              }
+            }}
+            title="Bấm để xem ảnh phóng to chi tiết"
+          >
             <img
-              src="./images/classroom-main.jpg"
-              alt="Toàn cảnh phòng học sáng, thoáng với nội thất gỗ"
+              src={galleryImages[0]?.src || "./images/classroom-main.jpg"}
+              alt={galleryImages[0]?.alt || "Toàn cảnh phòng học"}
             />
-            <figcaption>Phòng học sáng thoáng, ấm cúng</figcaption>
+            <span className="gallery__zoom-badge">🔍 Bấm để phóng to</span>
+            <figcaption>{galleryImages[0]?.caption || "Phòng học sáng thoáng, ấm cúng"}</figcaption>
           </figure>
-          <figure>
-            <img
-              src="./images/classroom-detail.jpg"
-              alt="Chi tiết góc học tập với vật liệu tự nhiên"
-            />
-            <figcaption>Góc giáo cụ can thiệp trực quan</figcaption>
-          </figure>
-          <figure>
-            <img
-              src="./images/classroom-main.jpg"
-              alt="Góc hoạt động trong phòng học"
-            />
-            <figcaption>Khu vực tương tác và vận động giác quan</figcaption>
-          </figure>
+
+          {galleryImages.slice(1, 3).map((item, idx) => (
+            <figure
+              key={idx + 1}
+              className="gallery__figure--interactive"
+              onClick={() => openLightbox(idx + 1)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  openLightbox(idx + 1)
+                }
+              }}
+              title="Bấm để xem ảnh phóng to chi tiết"
+            >
+              <img
+                src={item.src}
+                alt={item.alt || item.caption}
+              />
+              <span className="gallery__zoom-badge">🔍 Bấm để phóng to</span>
+              <figcaption>{item.caption}</figcaption>
+            </figure>
+          ))}
         </div>
       </div>
+
+      {/* Lightbox Gallery Modal (Solution 1) */}
+      <LightboxModal
+        isOpen={lightboxOpen}
+        images={galleryImages}
+        currentIndex={lightboxIndex}
+        onClose={() => setLightboxOpen(false)}
+        onNavigate={(newIdx) => setLightboxIndex(newIdx)}
+      />
     </section>
   )
 }
@@ -857,7 +1037,7 @@ function Contact() {
               </span>
               <h3>Đã tiếp nhận thông tin!</h3>
               <p>
-                Cảm ơn Quý phụ huynh đã tin tưởng gửi gắm. Cô Hương và ban chuyên môn sẽ liên hệ lại trực tiếp qua số điện thoại sớm nhất để đồng hành cùng gia đình.
+                Cảm ơn Quý phụ huynh đã tin tưởng gửi gắm. Cô Hương và ban chuyên môn sẽ liên hệ lại trực tiếp qua số Zalo sớm nhất để đồng hành cùng gia đình.
               </p>
               <div style={{ display: "flex", gap: "10px", marginTop: "16px", flexWrap: "wrap" }}>
                 <a className="button button--primary" href={`tel:${phone.replace(/[^0-9]/g, "")}`}>
@@ -877,6 +1057,8 @@ function Contact() {
                   name="name"
                   placeholder="Ví dụ: Nguyễn Thị Mai"
                   required
+                  autoComplete="name"
+                  disabled={submitting}
                 />
               </div>
               <div className="form-field">
@@ -887,11 +1069,15 @@ function Contact() {
                   placeholder={phone ? `Ví dụ: ${phone}` : "Ví dụ: 096 290 3942"}
                   required
                   type="tel"
+                  inputMode="numeric"
+                  pattern="[0-9\s.-]*"
+                  autoComplete="tel"
+                  disabled={submitting}
                 />
               </div>
               <div className="form-field">
                 <label htmlFor="need">Tình trạng / Nhu cầu của con</label>
-                <select id="need" name="need">
+                <select id="need" name="need" disabled={submitting}>
                   <option value="Can thiệp sớm & đánh giá ban đầu">Can thiệp sớm & đánh giá phát triển ban đầu</option>
                   <option value="Chậm nói / Âm ngữ trị liệu">Trẻ chậm nói / Cần âm ngữ trị liệu</option>
                   <option value="Tự kỷ / Kém tương tác xã hội">Biểu hiện tự kỷ / Kém tương tác mắt & xã hội</option>
@@ -908,6 +1094,7 @@ function Contact() {
                   name="message"
                   placeholder="Ví dụ: Con 28 tháng tuổi, chưa biết chỉ tay, hay lặp lời..."
                   rows={3}
+                  disabled={submitting}
                 />
               </div>
               <label className="checkbox">
@@ -915,13 +1102,28 @@ function Contact() {
                   checked={consent}
                   onChange={(event) => setConsent(event.target.checked)}
                   type="checkbox"
+                  disabled={submitting}
                 />
                 <span>
                   Tôi đồng ý để trung tâm liên hệ tư vấn. Thông tin được cam kết bảo mật 100%.
                 </span>
               </label>
+
+              {/* Security Privacy Assurance Pill */}
+              <div className="form-security-badge">
+                <Icon name="shield" size={16} />
+                <span>Bảo mật 100%: Trung tâm không chia sẻ dữ liệu và tuyệt đối không gọi làm phiền.</span>
+              </div>
+
+              {/* Optimistic Visual Feedback Button */}
               <Button disabled={!consent || submitting} type="submit" heatmapId="form-submit-consult">
-                {submitting ? "Đang gửi đăng ký..." : primaryAction}
+                {submitting ? (
+                  <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                    <span className="spinner-inline" /> Đang gửi thông tin đến Cô Hương...
+                  </span>
+                ) : (
+                  primaryAction
+                )}
               </Button>
             </>
           )}

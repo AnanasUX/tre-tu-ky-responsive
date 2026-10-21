@@ -1668,3 +1668,767 @@ a.contact__info-item:hover {
     left: 16px;
   }
 }
+
+
+/* ==========================================================================
+   TỐI ƯU HÓA TRẢI NGHIỆM NGƯỜI DÙNG (UX) & CHUYỂN ĐỔI (CRO) - 5 GIẢI PHÁP ĐỘT PHÁ
+   ========================================================================== */
+
+/* 1. LIGHTBOX GALLERY CHO THƯ VIỆN ẢNH (Khắc phục triệt để Dead Clicks) */
+.gallery__figure--interactive {
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+
+.gallery__figure--interactive:hover {
+  transform: translateY(-3px) scale(1.012);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+}
+
+.gallery__zoom-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(15, 23, 42, 0.78);
+  backdrop-filter: blur(6px);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 11px;
+  border-radius: 20px;
+  pointer-events: none;
+  opacity: 0.9;
+  transition: opacity 0.2s, transform 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 2;
+}
+
+.gallery__figure--interactive:hover .gallery__zoom-badge {
+  opacity: 1;
+  transform: scale(1.05);
+  background: rgba(22, 101, 52, 0.9);
+}
+
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(10, 15, 29, 0.92);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: lightboxFadeIn 0.22s ease-out;
+}
+
+@keyframes lightboxFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.lightbox-container {
+  width: 100%;
+  max-width: 980px;
+  max-height: 94vh;
+  display: flex;
+  flex-direction: column;
+  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+}
+
+.lightbox-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: rgba(17, 24, 39, 0.95);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.lightbox-counter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lightbox-tag {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 12px;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.lightbox-index {
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.lightbox-close-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #ffffff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.lightbox-close-btn:hover {
+  background: rgba(239, 68, 68, 0.85);
+  transform: rotate(90deg);
+}
+
+.lightbox-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 320px;
+  max-height: 60vh;
+  background: #030712;
+  overflow: hidden;
+  user-select: none;
+}
+
+.lightbox-image-wrap {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+.lightbox-main-img {
+  max-width: 100%;
+  max-height: 56vh;
+  object-fit: contain;
+  border-radius: 10px;
+  animation: imgScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes imgScaleIn {
+  from { opacity: 0.6; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.lightbox-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.lightbox-nav-btn:hover {
+  background: rgba(34, 197, 94, 0.9);
+  border-color: #22c55e;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.lightbox-nav-btn--prev {
+  left: 14px;
+}
+
+.lightbox-nav-btn--next {
+  right: 14px;
+}
+
+.lightbox-footer {
+  padding: 14px 20px;
+  background: #0f172a;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lightbox-caption {
+  margin: 0;
+  color: #f1f5f9;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.lightbox-thumbnails {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 0;
+}
+
+.lightbox-thumb-btn {
+  width: 60px;
+  height: 44px;
+  padding: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  background: #1e293b;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+}
+
+.lightbox-thumb-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lightbox-thumb-btn:hover {
+  opacity: 0.85;
+}
+
+.lightbox-thumb-btn--active {
+  opacity: 1;
+  border-color: #22c55e;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.4);
+}
+
+/* 2. THẺ GIÁO VIÊN TƯƠNG TÁC & MODAL HỒ SƠ CHUYÊN MÔN */
+.profile-card--interactive {
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+  border-radius: var(--radius-lg);
+  padding: 16px 12px;
+}
+
+.profile-card--interactive:hover {
+  transform: translateY(-4px);
+  background: #ffffff;
+  box-shadow: 0 14px 32px rgba(22, 101, 52, 0.1);
+}
+
+.profile-card__portrait {
+  position: relative;
+}
+
+.profile-card__inspect-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 14px;
+  white-space: nowrap;
+  opacity: 0.9;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.profile-card--interactive:hover .profile-card__inspect-badge {
+  background: #15803d;
+  opacity: 1;
+  transform: translateX(-50%) scale(1.05);
+}
+
+.profile-card__footer-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+}
+
+.profile-card__view-link {
+  font-size: 12px;
+  font-weight: 700;
+  color: #2563eb;
+  transition: color 0.18s;
+}
+
+.profile-card--interactive:hover .profile-card__view-link {
+  color: #15803d;
+  text-decoration: underline;
+}
+
+/* Modal Hồ sơ Chuyên môn Giáo viên */
+.teacher-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: lightboxFadeIn 0.2s ease-out;
+}
+
+.teacher-modal-card {
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  background: #ffffff;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+  animation: modalScaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalScaleUp {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.teacher-modal-header {
+  position: relative;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f8fafc 100%);
+  padding: 24px;
+  border-bottom: 1px solid #dcfce7;
+}
+
+.teacher-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  z-index: 5;
+}
+
+.teacher-modal-close:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+  transform: rotate(90deg);
+}
+
+.teacher-header-content {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.teacher-header-avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #dcfce7;
+  border: 3px solid #ffffff;
+  box-shadow: 0 4px 14px rgba(22, 101, 52, 0.15);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.teacher-header-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.teacher-avatar-fallback {
+  font-size: 28px;
+  font-weight: 800;
+  color: #15803d;
+}
+
+.teacher-header-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.teacher-verified-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+  margin-bottom: 6px;
+  width: fit-content;
+  border: 1px solid #86efac;
+}
+
+.teacher-header-info h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.teacher-role-tag {
+  margin: 3px 0 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #166534;
+}
+
+.teacher-exp-tag {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.teacher-modal-body {
+  padding: 22px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.teacher-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.teacher-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.teacher-section-title h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.sec-icon {
+  font-size: 16px;
+}
+
+.credential-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.credential-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13.5px;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.check-dot {
+  color: #16a34a;
+  font-weight: 800;
+  margin-top: 1px;
+}
+
+.specialty-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.specialty-chip {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+.teacher-philosophy-quote {
+  margin: 0;
+  font-style: italic;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #475569;
+  background: #f8fafc;
+  border-left: 3px solid #16a34a;
+  padding: 12px 16px;
+  border-radius: 0 10px 10px 0;
+}
+
+.teacher-modal-footer {
+  padding: 16px 24px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.teacher-zalo-btn {
+  flex: 1;
+  min-width: 180px;
+  height: 44px;
+  background: #0284c7;
+  color: #ffffff;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.18s ease;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
+}
+
+.teacher-zalo-btn:hover {
+  background: #0369a1;
+  transform: translateY(-1px);
+}
+
+.teacher-consult-btn {
+  flex: 1.4;
+  min-width: 220px;
+  height: 44px;
+  background: #15803d;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 2px 8px rgba(22, 128, 61, 0.25);
+}
+
+.teacher-consult-btn:hover {
+  background: #166534;
+  transform: translateY(-1px);
+}
+
+/* 3. CONTEXTUAL INLINE CTA & CAM KẾT BẢO MẬT (Solution 5: Đón đầu phụ huynh tại điểm rơi phễu) */
+.team-inline-cta-card {
+  margin-top: 48px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 45%, #ffffff 100%);
+  border: 2px solid #86efac;
+  border-radius: 20px;
+  padding: 32px 36px;
+  box-shadow: 0 8px 30px rgba(22, 101, 52, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  text-align: center;
+  align-items: center;
+}
+
+.team-inline-cta-shield {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid #86efac;
+}
+
+.team-inline-cta-header h3 {
+  margin: 12px 0 8px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #14532d;
+  letter-spacing: -0.01em;
+}
+
+.team-inline-cta-header p {
+  margin: 0 auto;
+  max-width: 720px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: #374151;
+}
+
+.team-inline-cta-actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.button--zalo-highlight {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff !important;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.button--zalo-highlight:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.45);
+}
+
+.button--secondary-outline {
+  background: #ffffff;
+  color: #15803d !important;
+  font-weight: 700;
+  border: 2px solid #16a34a;
+  border-radius: 12px;
+  padding: 10px 22px;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.button--secondary-outline:hover {
+  background: #f0fdf4;
+  transform: translateY(-2px);
+}
+
+.team-inline-cta-trust-tags {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  padding-top: 8px;
+  border-top: 1px dashed #cbd5e1;
+  width: 100%;
+}
+
+.team-inline-cta-trust-tags span:nth-child(odd) {
+  color: #166534;
+}
+
+/* 4. OPTIMISTIC VISUAL FEEDBACK CHO FORM & FAQ ACCORDION (Solution 3 & 4) */
+.form-security-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: #166534;
+  font-weight: 500;
+}
+
+.form-security-badge svg {
+  color: #16a34a;
+  flex-shrink: 0;
+}
+
+.spinner-inline {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* FAQ Accordion chuyển động siêu mượt < 150ms xóa sạch Rage Clicks */
+.faq-item__answer {
+  transition: grid-template-rows 0.14s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.faq-item > button {
+  touch-action: manipulation;
+  min-height: 58px;
+}
+
+/* Chuẩn hóa công thái học di động: font-size 16px ngăn chặn Safari iOS tự động zoom */
+input[type="text"],
+input[type="tel"],
+select,
+textarea {
+  font-size: 16px !important;
+  touch-action: manipulation !important;
+}
+
+/* Vùng chạm tối thiểu 48x48px theo chuẩn Google Material & Apple HIG */
+.button,
+.nav__cta,
+.header__cta,
+.floating-contact__btn,
+.back-to-top {
+  min-height: 48px;
+  touch-action: manipulation;
+}
