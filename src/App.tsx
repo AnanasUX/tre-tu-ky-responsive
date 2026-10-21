@@ -20,6 +20,7 @@ import "lenis/dist/lenis.css"
 import { getHeatmapTracker } from "./analytics/heatmapTracker"
 import { LightboxModal, type LightboxImage } from "./LightboxModal"
 import { TeacherDetailModal, type TeacherData, getTeacherExtraDetails } from "./TeacherDetailModal"
+import { LiveChatWidget } from "./LiveChatWidget"
 
 const LandingConfigContext = createContext<LandingPageConfig>(initialLandingPageConfig)
 const useConfig = () => useContext(LandingConfigContext)
@@ -1213,6 +1214,7 @@ function FloatingContactBar({
   enablePhone = true,
   enablePulse = true,
   position = "right",
+  onOpenChat,
 }: {
   phone?: string
   facebook?: string
@@ -1222,6 +1224,7 @@ function FloatingContactBar({
   enablePhone?: boolean
   enablePulse?: boolean
   position?: "right" | "left"
+  onOpenChat?: () => void
 }) {
   const cleanPhone = (phone || "").replace(/[^0-9]/g, "") || "0962903942"
 
@@ -1250,6 +1253,20 @@ function FloatingContactBar({
       className={`floating-contact ${position === "left" ? "floating-contact--left" : ""}`}
       aria-label="Liên hệ nhanh"
     >
+      {/* Nút Chat ngay trực tiếp trên website */}
+      <button
+        type="button"
+        className="floating-contact__btn floating-contact__btn--chat"
+        onClick={onOpenChat}
+        aria-label="Chat trực tiếp với Cô Hương và chuyên viên"
+        title="Chat trực tiếp với Cô Hương và chuyên viên"
+        data-heatmap-id="cta-float-chat"
+      >
+        {enablePulse && <span className="floating-contact__pulse" />}
+        <span style={{ fontSize: "18px", display: "inline-block", lineHeight: 1 }}>💬</span>
+        <span className="floating-contact__text" style={{ fontSize: "10px", marginTop: "1px", fontWeight: 700 }}>Chat</span>
+      </button>
+
       {enableFacebook && (
         <a
           className="floating-contact__btn floating-contact__btn--facebook"
@@ -1380,6 +1397,7 @@ function useScrollEffects(dep: any) {
 
 export default function App() {
   const [config, setConfig] = useState<LandingPageConfig>(loadLandingConfig)
+  const [isChatOpen, setIsChatOpen] = useState(false)
   const { scrolled, scrollProgress, showBackToTop, scrollToTop } = useScrollEffects(config)
 
   useEffect(() => {
@@ -1453,6 +1471,12 @@ export default function App() {
         enablePhone={config.enableFloatingPhone !== false}
         enablePulse={config.enableFloatingPulse !== false}
         position={config.floatingPosition || "right"}
+        onOpenChat={() => setIsChatOpen(true)}
+      />
+      <LiveChatWidget
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        phone={config.phone || "096 290 3942"}
       />
       {config.enableBackToTop !== false && (
         <BackToTop
