@@ -1,19 +1,20 @@
 /**
  * Touch & Click Heatmap / UX Interaction Analytics Tracker
- * Ghi nhận hành vi điểm chạm người dùng (Click, Touch, Scroll Depth, Rage & Dead Clicks)
+ * Ghi nhận hành vi điểm chạm người dùng (Click, Touch, Scroll Depth, Rage & Dead Clicks, Visitor Tracking)
+ * Tích hợp nguồn truy cập thực tế (Zalo Campaign, Mobile/Desktop, Unique Visitors)
  */
 
 export interface HeatmapEvent {
   id: string;
-  type: "click" | "tap" | "rage_click" | "dead_click" | "scroll_milestone";
+  type: "click" | "tap" | "rage_click" | "dead_click" | "scroll_milestone" | "pageview";
   timestamp: number;
   sessionId: string;
+  visitorId: string;
   pageUrl: string;
   deviceType: "desktop" | "tablet" | "mobile";
   viewportWidth: number;
   viewportHeight: number;
   documentHeight: number;
-  // Normalized coordinates (0 to 1) relative to total page dimensions
   xNorm: number;
   yNorm: number;
   docX: number;
@@ -22,6 +23,21 @@ export interface HeatmapEvent {
   elementType?: string;
   elementText?: string;
   scrollDepth?: number;
+  isZalo?: boolean;
+  utmSource?: string;
+  isNewVisitor?: boolean;
+  isNewSession?: boolean;
+}
+
+export interface ElementDetailStats {
+  count: number;
+  name: string;
+  mobileCount: number;
+  desktopCount: number;
+  zaloCount: number;
+  rageCount: number;
+  deadCount: number;
+  lastInteracted?: number;
 }
 
 export interface HeatmapStore {
@@ -32,6 +48,10 @@ export interface HeatmapStore {
     totalRageClicks: number;
     totalDeadClicks: number;
     totalSessions: number;
+    totalVisitors: number;
+    zaloVisitors: number;
+    activeVisitors: number;
+    lastActiveTimestamp?: number;
     scrollStats: {
       "25": number;
       "50": number;
@@ -39,22 +59,42 @@ export interface HeatmapStore {
       "100": number;
     };
     elementRanking?: Record<string, number>;
+    elementBreakdown?: Record<string, ElementDetailStats>;
   };
 }
 
 const KVDB_HEATMAP_URL = "https://kvdb.io/RtALwN4JAnjEQUjqKLgAuk/heatmap_data";
 const SESSION_STORAGE_KEY = "aurora_heatmap_session_id";
+const VISITOR_STORAGE_KEY = "aurora_unique_visitor_id";
+const SESSION_TRACKED_KEY = "aurora_session_pageview_tracked";
 
-function getAnonymousSessionId(): string {
+function getUniqueVisitorId(): { visitorId: string; isNewVisitor: boolean } {
+  try {
+    let visitorId = window.localStorage.getItem(VISITOR_STORAGE_KEY);
+    let isNewVisitor = false;
+    if (!visitorId) {
+      visitorId = "vis_" + Math.random().toString(36).substring(2, 9) + "_" + Date.now().toString(36);
+      window.localStorage.setItem(VISITOR_STORAGE_KEY, visitorId);
+      isNewVisitor = true;
+    }
+    return { visitorId, isNewVisitor };
+  } catch {
+    return { visitorId: "vis_anon", isNewVisitor: false };
+  }
+}
+
+function getAnonymousSessionId(): { sessionId: string; isNewSession: boolean } {
   try {
     let sessId = window.sessionStorage.getItem(SESSION_STORAGE_KEY);
+    let isNewSession = false;
     if (!sessId) {
-      sessId = "sess_" + Math.random().toString(36).substring(2, 10) + "_" + Date.now().toString(36);
+      sessId = "sess_" + Math.random().toString(36).substring(2, 9) + "_" + Date.now().toString(36);
       window.sessionStorage.setItem(SESSION_STORAGE_KEY, sessId);
+      isNewSession = true;
     }
-    return sessId;
+    return { sessionId, isNewSession };
   } catch {
-    return "sess_anonymous";
+    return { sessionId: "sess_anon", isNewSession: false };
   }
 }
 
@@ -65,10 +105,26 @@ function getDeviceType(): "desktop" | "tablet" | "mobile" {
   return "desktop";
 }
 
+function isZaloSource(): boolean {
+  try {
+    const s = window.location.search.toLowerCase();
+    const r = document.referrer.toLowerCase();
+    return (
+      s.includes("zalo") ||
+      s.includes("zarsrc=30") ||
+      s.includes("utm_source=zalo") ||
+      r.includes("zalo")
+    );
+  } catch {
+    return false;
+  }
+}
+
 export class HeatmapTracker {
   private queue: HeatmapEvent[] = [];
   private flushTimer: number | null = null;
-  private sessionId = getAnonymousSessionId();
+  private visitorInfo = getUniqueVisitorId();
+  private sessionInfo = getAnonymousSessionId();
   private scrollMilestones = new Set<number>();
   private recentClicks: { time: number; x: number; y: number }[] = [];
   private isTouchDevice = false;
@@ -84,21 +140,62 @@ export class HeatmapTracker {
   public init() {
     if (typeof window === "undefined") return;
 
-    // 1. Listen for clicks & taps
+    // 1. Ghi nhận lượt truy cập (Pageview / Visit) ngay lập tức
+    this.trackInitialVisit();
+
+    // 2. Lắng nghe các điểm chạm & click
     window.addEventListener("pointerdown", this.handlePointerDown, { passive: true });
 
-    // 2. Listen for scroll depth milestones
+    // 3. Lắng nghe độ sâu cuộn trang
     window.addEventListener("scroll", this.handleScroll, { passive: true });
 
-    // 3. Listen for page unload/hide to flush queue
+    // 4. Lắng nghe đóng tab / ẩn trang để đẩy nốt sự kiện
     document.addEventListener("visibilitychange", this.handleVisibilityChange);
     window.addEventListener("pagehide", () => this.flush(true));
 
-    // Initial scroll check
+    // Kiểm tra scroll ban đầu
     this.checkScrollMilestones();
 
-    // Start batch flush timer (every 6 seconds)
-    this.flushTimer = window.setInterval(() => this.flush(false), 6000);
+    // Định kỳ gửi dữ liệu mỗi 5 giây
+    this.flushTimer = window.setInterval(() => this.flush(false), 5000);
+  }
+
+  private trackInitialVisit() {
+    try {
+      const alreadyTracked = window.sessionStorage.getItem(SESSION_TRACKED_KEY);
+      const isZalo = isZaloSource();
+      const params = new URLSearchParams(window.location.search);
+      const utmSource = params.get("utm_source") || (isZalo ? "zalo" : "direct");
+
+      const pvEvent: HeatmapEvent = {
+        id: "pv_" + Math.random().toString(36).substring(2, 9),
+        type: "pageview",
+        timestamp: Date.now(),
+        sessionId: this.sessionInfo.sessionId,
+        visitorId: this.visitorInfo.visitorId,
+        pageUrl: window.location.pathname + window.location.search + window.location.hash,
+        deviceType: getDeviceType(),
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        documentHeight: document.documentElement.scrollHeight || window.innerHeight,
+        xNorm: 0.5,
+        yNorm: 0.05,
+        docX: window.innerWidth / 2,
+        docY: 50,
+        isZalo,
+        utmSource,
+        isNewVisitor: this.visitorInfo.isNewVisitor,
+        isNewSession: !alreadyTracked || this.sessionInfo.isNewSession,
+      };
+
+      window.sessionStorage.setItem(SESSION_TRACKED_KEY, "true");
+      this.queue.push(pvEvent);
+
+      // Gửi ngay sau 800ms để ghi nhận visitor counter tức thì
+      window.setTimeout(() => this.flush(false), 800);
+    } catch (e) {
+      console.warn("Could not track visit:", e);
+    }
   }
 
   public destroy() {
@@ -111,7 +208,6 @@ export class HeatmapTracker {
   }
 
   private handlePointerDown = (event: PointerEvent) => {
-    // Exclude touches inside iframe or non-primary buttons
     if (event.button !== 0 && event.pointerType === "mouse") return;
 
     const docWidth = Math.max(document.documentElement.scrollWidth, window.innerWidth);
@@ -123,11 +219,9 @@ export class HeatmapTracker {
     const xNorm = Math.min(1, Math.max(0, docX / docWidth));
     const yNorm = Math.min(1, Math.max(0, docY / docHeight));
 
-    // Element identification
     const target = event.target as HTMLElement | null;
     if (!target) return;
 
-    // Check for password or sensitive input (privacy protection)
     if (target instanceof HTMLInputElement && (target.type === "password" || target.type === "hidden")) {
       return;
     }
@@ -139,53 +233,59 @@ export class HeatmapTracker {
     const elementType = interactiveEl ? interactiveEl.tagName.toLowerCase() : target.tagName.toLowerCase();
     const elementText = interactiveEl ? (interactiveEl.getAttribute("aria-label") || interactiveEl.innerText?.substring(0, 30)?.trim()) : undefined;
 
-    // Rage click & Dead click detection
     const now = Date.now();
-    this.recentClicks.push({ time: now, x: docX, y: docY });
-    // Keep only last 4 clicks within 1.2s
+    const isTouch = event.pointerType === "touch" || this.isTouchDevice;
+
+    // Phát hiện Rage Click (người dùng bấm dồn dập vào cùng 1 vị trí)
     this.recentClicks = this.recentClicks.filter((c) => now - c.time < 1200);
+    this.recentClicks.push({ time: now, x: docX, y: docY });
 
-    let type: HeatmapEvent["type"] = event.pointerType === "touch" ? "tap" : "click";
-
+    let isRageClick = false;
     if (this.recentClicks.length >= 3) {
-      const first = this.recentClicks[this.recentClicks.length - 3];
-      const dist = Math.hypot(docX - first.x, docY - first.y);
-      if (dist < 35) {
-        type = "rage_click";
+      const first = this.recentClicks[0];
+      const distance = Math.hypot(first.x - docX, first.y - docY);
+      if (distance < 30) {
+        isRageClick = true;
       }
-    } else if (!interactiveEl && !heatmapEl && target.tagName !== "BODY" && target.tagName !== "HTML") {
-      // Clicked on a static non-interactive element
-      type = "dead_click";
     }
 
-    const ev: HeatmapEvent = {
+    // Phát hiện Dead Click (nhấp vào phần tử tĩnh không có phản hồi)
+    const isDeadClick = !interactiveEl && !heatmapEl && (target === document.body || target.tagName.toLowerCase() === "div" || target.tagName.toLowerCase() === "section");
+
+    const eventType: HeatmapEvent["type"] = isRageClick
+      ? "rage_click"
+      : isDeadClick
+      ? "dead_click"
+      : isTouch
+      ? "tap"
+      : "click";
+
+    const isZalo = isZaloSource();
+
+    const heatEvent: HeatmapEvent = {
       id: "ev_" + Math.random().toString(36).substring(2, 9),
-      type,
+      type: eventType,
       timestamp: now,
-      sessionId: this.sessionId,
-      pageUrl: window.location.pathname + window.location.hash,
+      sessionId: this.sessionInfo.sessionId,
+      visitorId: this.visitorInfo.visitorId,
+      pageUrl: window.location.pathname + window.location.search + window.location.hash,
       deviceType: getDeviceType(),
       viewportWidth: window.innerWidth,
       viewportHeight: window.innerHeight,
       documentHeight: docHeight,
-      xNorm: Math.round(xNorm * 10000) / 10000,
-      yNorm: Math.round(yNorm * 10000) / 10000,
-      docX: Math.round(docX),
-      docY: Math.round(docY),
+      xNorm,
+      yNorm,
+      docX,
+      docY,
       elementId,
       elementType,
       elementText,
+      isZalo,
     };
 
-    this.queue.push(ev);
+    this.queue.push(heatEvent);
 
-    // Live sync via BroadcastChannel for real-time visualization in admin
-    try {
-      this.channel?.postMessage({ type: "live_heatmap_event", event: ev });
-    } catch {}
-
-    // Flush immediately if queue reaches 15 events
-    if (this.queue.length >= 15) {
+    if (this.queue.length >= 10) {
       this.flush(false);
     }
   };
@@ -195,25 +295,25 @@ export class HeatmapTracker {
   };
 
   private checkScrollMilestones() {
-    const scrollTop = window.scrollY || document.documentElement.scrollTop;
-    const windowHeight = window.innerHeight;
-    const docHeight = document.documentElement.scrollHeight;
+    const scrollY = window.scrollY;
+    const winHeight = window.innerHeight;
+    const docHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight, winHeight);
 
-    if (docHeight <= 0) return;
-
-    const currentScrollDepth = Math.min(100, Math.round(((scrollTop + windowHeight) / docHeight) * 100));
+    const currentScrollDepth = Math.min(100, Math.round(((scrollY + winHeight) / docHeight) * 100));
 
     const milestones = [25, 50, 75, 100];
     for (const m of milestones) {
       if (currentScrollDepth >= m && !this.scrollMilestones.has(m)) {
         this.scrollMilestones.add(m);
 
-        const ev: HeatmapEvent = {
-          id: "scr_" + Math.random().toString(36).substring(2, 9),
+        const isZalo = isZaloSource();
+        const milestoneEvent: HeatmapEvent = {
+          id: `scroll_${m}_${Date.now()}`,
           type: "scroll_milestone",
           timestamp: Date.now(),
-          sessionId: this.sessionId,
-          pageUrl: window.location.pathname + window.location.hash,
+          sessionId: this.sessionInfo.sessionId,
+          visitorId: this.visitorInfo.visitorId,
+          pageUrl: window.location.pathname + window.location.search + window.location.hash,
           deviceType: getDeviceType(),
           viewportWidth: window.innerWidth,
           viewportHeight: window.innerHeight,
@@ -221,14 +321,12 @@ export class HeatmapTracker {
           xNorm: 0.5,
           yNorm: m / 100,
           docX: window.innerWidth / 2,
-          docY: Math.round((docHeight * m) / 100),
+          docY: (m / 100) * docHeight,
           scrollDepth: m,
+          isZalo,
         };
 
-        this.queue.push(ev);
-        try {
-          this.channel?.postMessage({ type: "live_heatmap_event", event: ev });
-        } catch {}
+        this.queue.push(milestoneEvent);
       }
     }
   }
@@ -254,7 +352,7 @@ export class HeatmapTracker {
     this.queue = [];
 
     try {
-      // 1. Fetch current stored heatmap data from KVDB
+      // 1. Lấy dữ liệu heatmap hiện tại từ KVDB
       const res = await fetch(KVDB_HEATMAP_URL, { cache: "no-store" });
       let store: HeatmapStore = {
         events: [],
@@ -264,8 +362,13 @@ export class HeatmapTracker {
           totalRageClicks: 0,
           totalDeadClicks: 0,
           totalSessions: 1,
+          totalVisitors: 1,
+          zaloVisitors: 0,
+          activeVisitors: 1,
+          lastActiveTimestamp: Date.now(),
           scrollStats: { "25": 0, "50": 0, "75": 0, "100": 0 },
           elementRanking: {},
+          elementBreakdown: {},
         },
       };
 
@@ -278,23 +381,38 @@ export class HeatmapTracker {
         } catch {}
       }
 
-      // 2. Append events (keep latest 1500 events to stay lightweight and fast)
-      const mergedEvents = [...store.events, ...eventsToSend].slice(-1500);
+      // Giữ tối đa 2000 sự kiện gần nhất
+      const mergedEvents = [...store.events, ...eventsToSend].slice(-2000);
 
-      // 3. Update summary metrics
+      // Cập nhật metrics
       const summary = store.summary || {
         totalClicks: 0,
         totalTaps: 0,
         totalRageClicks: 0,
         totalDeadClicks: 0,
         totalSessions: 1,
+        totalVisitors: 1,
+        zaloVisitors: 0,
+        activeVisitors: 1,
         scrollStats: { "25": 0, "50": 0, "75": 0, "100": 0 },
         elementRanking: {},
+        elementBreakdown: {},
       };
 
       if (!summary.elementRanking) summary.elementRanking = {};
+      if (!summary.elementBreakdown) summary.elementBreakdown = {};
+      if (!summary.totalVisitors) summary.totalVisitors = 1;
+      if (!summary.zaloVisitors) summary.zaloVisitors = 0;
+
+      summary.lastActiveTimestamp = Date.now();
 
       for (const ev of eventsToSend) {
+        if (ev.type === "pageview") {
+          if (ev.isNewVisitor) summary.totalVisitors += 1;
+          if (ev.isNewSession) summary.totalSessions += 1;
+          if (ev.isZalo) summary.zaloVisitors += 1;
+        }
+
         if (ev.type === "click") summary.totalClicks = (summary.totalClicks || 0) + 1;
         if (ev.type === "tap") summary.totalTaps = (summary.totalTaps || 0) + 1;
         if (ev.type === "rage_click") summary.totalRageClicks = (summary.totalRageClicks || 0) + 1;
@@ -309,6 +427,26 @@ export class HeatmapTracker {
 
         if (ev.elementId) {
           summary.elementRanking[ev.elementId] = (summary.elementRanking[ev.elementId] || 0) + 1;
+
+          if (!summary.elementBreakdown[ev.elementId]) {
+            summary.elementBreakdown[ev.elementId] = {
+              count: 0,
+              name: ev.elementText || ev.elementId,
+              mobileCount: 0,
+              desktopCount: 0,
+              zaloCount: 0,
+              rageCount: 0,
+              deadCount: 0,
+            };
+          }
+          const item = summary.elementBreakdown[ev.elementId];
+          item.count += 1;
+          if (ev.deviceType === "mobile") item.mobileCount += 1;
+          else item.desktopCount += 1;
+          if (ev.isZalo) item.zaloCount += 1;
+          if (ev.type === "rage_click") item.rageCount += 1;
+          if (ev.type === "dead_click") item.deadCount += 1;
+          item.lastInteracted = Date.now();
         }
       }
 
@@ -317,15 +455,19 @@ export class HeatmapTracker {
         summary,
       };
 
-      // 4. Save to KVDB
+      // 4. Lưu lên KVDB
       await fetch(KVDB_HEATMAP_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedStore),
         keepalive: isExiting,
       });
+
+      // Phát tín hiệu BroadcastChannel
+      try {
+        this.channel?.postMessage({ type: "new_heatmap_events", events: eventsToSend });
+      } catch {}
     } catch (err) {
-      // Re-queue events if send failed
       this.queue = [...eventsToSend, ...this.queue];
     }
   }
