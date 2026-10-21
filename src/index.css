@@ -228,14 +228,24 @@ a:focus-visible,
 }
 
 .header {
-  background: rgba(255, 255, 255, 0.98);
+  background: rgba(255, 255, 255, 0.96);
   border-bottom: 1px solid var(--line);
   left: 0;
   position: sticky;
   right: 0;
   top: 0;
   z-index: 100;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.header--scrolled {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(80, 0, 139, 0.12);
+  box-shadow: 0 4px 20px rgba(80, 0, 139, 0.08);
 }
 
 .header__bar {
@@ -244,6 +254,11 @@ a:focus-visible,
   justify-content: space-between;
   min-height: 76px;
   gap: 16px;
+  transition: min-height 0.25s ease;
+}
+
+.header--scrolled .header__bar {
+  min-height: 64px;
 }
 
 .brand-link {
@@ -289,6 +304,7 @@ a:focus-visible,
   padding: 6px 4px;
   transition: color 0.2s;
   white-space: nowrap;
+  position: relative;
 }
 
 .nav a:hover {
@@ -298,6 +314,17 @@ a:focus-visible,
 .nav .nav__active {
   color: var(--primary);
   font-weight: 700;
+}
+
+.nav .nav__active::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 4px;
+  right: 4px;
+  height: 2.5px;
+  background: var(--primary);
+  border-radius: 2px;
 }
 
 .nav__cta {

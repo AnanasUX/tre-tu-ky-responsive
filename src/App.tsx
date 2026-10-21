@@ -19,7 +19,6 @@ import Lenis from "lenis"
 import "lenis/dist/lenis.css"
 import { getHeatmapTracker } from "./analytics/heatmapTracker"
 import { LightboxModal, type LightboxImage } from "./LightboxModal"
-import { TeacherDetailModal, type TeacherData, getTeacherExtraDetails } from "./TeacherDetailModal"
 import { LiveChatWidget } from "./LiveChatWidget"
 
 const LandingConfigContext = createContext<LandingPageConfig>(initialLandingPageConfig)
@@ -210,7 +209,13 @@ function getSection(config: LandingPageConfig, id: string): LandingSection | und
   return config.sections.find((s) => s.id === id)
 }
 
-function Header({ scrolled }: { scrolled: boolean }) {
+function Header({
+  scrolled,
+  activeSection = "about",
+}: {
+  scrolled: boolean
+  activeSection?: string
+}) {
   const config = useConfig()
   const [open, setOpen] = useState(false)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
@@ -241,7 +246,7 @@ function Header({ scrolled }: { scrolled: boolean }) {
   }
 
   return (
-    <header className={`header ${scrolled ? "header--scrolled" : ""}`}>
+    <header className={`header${scrolled ? " header--scrolled" : ""}`}>
       <div className="container header__bar">
         <a
           className="brand-link"
@@ -261,23 +266,27 @@ function Header({ scrolled }: { scrolled: boolean }) {
           className={`nav ${open ? "nav--open" : ""}`}
           aria-label="Điều hướng chính"
         >
-          {config.navigation.map((item, index) => (
-            <a
-              key={`${item.path}-${index}`}
-              className={index === 0 ? "nav__active" : ""}
-              href={item.path}
-              onClick={(e) => {
-                if (item.path.startsWith("#")) {
-                  e.preventDefault()
-                  scrollToHash(item.path)
-                } else {
-                  setOpen(false)
-                }
-              }}
-            >
-              {item.label}
-            </a>
-          ))}
+          {config.navigation.map((item, index) => {
+            const sectionId = item.path.replace("#", "")
+            const isActive = activeSection === sectionId || (!activeSection && index === 0)
+            return (
+              <a
+                key={`${item.path}-${index}`}
+                className={isActive ? "nav__active" : ""}
+                href={item.path}
+                onClick={(e) => {
+                  if (item.path.startsWith("#")) {
+                    e.preventDefault()
+                    scrollToHash(item.path)
+                  } else {
+                    setOpen(false)
+                  }
+                }}
+              >
+                {item.label}
+              </a>
+            )
+          })}
           <a
             className="button button--primary nav__cta"
             href="#contact"
@@ -1246,7 +1255,6 @@ function Footer() {
           <h3>Khám phá</h3>
           <a href="#about">Giới thiệu</a>
           <a href="#areas">Lĩnh vực hỗ trợ</a>
-          <a href="#team">Đội ngũ</a>
           <a href="#resources">Tài nguyên</a>
         </div>
         <div>
@@ -1259,7 +1267,7 @@ function Footer() {
       </div>
       <div className="container footer__bottom">
         <span>© 2026 Trung tâm Hỗ trợ Trẻ tự kỷ Cô Hương. Bảo lưu mọi quyền.</span>
-        <span>{config.address || "TDP Duyên Phúc, xã Hưng Hà, Tỉnh Hưng Yên"} · {config.phone || "096 290 3942"}</span>
+        <span>{config.address || "TDP Duyên Phúc, xã Hưng Hà, Tỉnh Thái Bình"} · {config.phone || "096 290 3942"}</span>
       </div>
     </footer>
   )
@@ -1423,26 +1431,50 @@ function useScrollEffects(dep: any) {
     lenisRef.current = lenis
     ;(window as any).__lenis = lenis
 
-    const handleScroll = (e: any) => {
-      const scroll = typeof e?.scroll === "number" ? e.scroll : (window.scrollY || document.documentElement.scrollTop)
-      const progress = typeof e?.progress === "number" ? e.progress * 100 : 0
-
-      setScrolled(scroll > 30)
+    const updateMetrics = (scroll: number, progress: number) => {
+      setScrolled(scroll > 20)
       setShowBackToTop(scroll > 350)
       setScrollProgress(progress)
+
+      // Scrollspy: xác định section đang hiển thị trên màn hình
+      const sectionIds = ["about", "areas", "process", "gallery", "resources", "faq", "contact"]
+      const checkY = scroll + 150
+      for (let i = sectionIds.length - 1; i >= 0; i--) {
+        const el = document.getElementById(sectionIds[i])
+        if (el) {
+          const top = el.offsetTop
+          if (checkY >= top) {
+            setActiveSection(sectionIds[i])
+            break
+          }
+        }
+      }
     }
 
-    lenis.on("scroll", handleScroll)
+    const handleLenisScroll = (e: any) => {
+      const scroll = typeof e?.scroll === "number" ? e.scroll : (window.scrollY || document.documentElement.scrollTop)
+      const progress = typeof e?.progress === "number" ? e.progress * 100 : 0
+      updateMetrics(scroll, progress)
+    }
+
+    const handleNativeScroll = () => {
+      const scroll = window.scrollY || document.documentElement.scrollTop
+      const totalH = document.documentElement.scrollHeight - window.innerHeight
+      const progress = totalH > 0 ? (scroll / totalH) * 100 : 0
+      updateMetrics(scroll, progress)
+    }
+
+    lenis.on("scroll", handleLenisScroll)
+    window.addEventListener("scroll", handleNativeScroll, { passive: true })
 
     // Initial scroll check
-    const initialY = window.scrollY || document.documentElement.scrollTop
-    setScrolled(initialY > 30)
-    setShowBackToTop(initialY > 350)
+    handleNativeScroll()
 
     return () => {
       lenis.destroy()
       lenisRef.current = null
       delete (window as any).__lenis
+      window.removeEventListener("scroll", handleNativeScroll)
     }
   }, [])
 
@@ -1484,13 +1516,13 @@ function useScrollEffects(dep: any) {
     }
   }
 
-  return { scrolled, scrollProgress, showBackToTop, scrollToTop }
+  return { scrolled, scrollProgress, showBackToTop, scrollToTop, activeSection }
 }
 
 export default function App() {
   const [config, setConfig] = useState<LandingPageConfig>(loadLandingConfig)
   const [isChatOpen, setIsChatOpen] = useState(false)
-  const { scrolled, scrollProgress, showBackToTop, scrollToTop } = useScrollEffects(config)
+  const { scrolled, scrollProgress, showBackToTop, scrollToTop, activeSection } = useScrollEffects(config)
 
   useEffect(() => {
     // 1. Fetch latest config from cloud
@@ -1543,12 +1575,11 @@ export default function App() {
   return (
     <LandingConfigContext.Provider value={config}>
       <ScrollProgressBar progress={scrollProgress} />
-      <Header scrolled={scrolled} />
+      <Header scrolled={scrolled} activeSection={activeSection} />
       <Hero />
       <Mission />
       <Areas />
       <Process />
-      <Team />
       <Space />
       <Resources />
       <Faq />
