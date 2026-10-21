@@ -1,3 +1,5 @@
+html, body { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
+button, a, input, select, textarea { touch-action: manipulation; }
 @import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700&display=swap");
 @import "tailwindcss";
 
