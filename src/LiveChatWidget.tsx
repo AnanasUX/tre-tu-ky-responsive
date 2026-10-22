@@ -1,5 +1,6 @@
 import { analyzeUserQuestionAndRespond } from "./autismKnowledgeBase"
 import React, { useState, useEffect, useRef } from "react"
+import { sendLeadToGoogleSheets, sendChatLogToGoogleSheets } from "./services/googleSheetsService"
 
 export interface ChatMessage {
   id: string
@@ -164,8 +165,10 @@ export function LiveChatWidget({
         createdAt: timestamp,
       }
 
-      // Đẩy lên KVDB cho Đăng ký tư vấn
+      // Đẩy lên Google Sheets và KVDB cho Đăng ký tư vấn
       try {
+        sendLeadToGoogleSheets(newLead).catch((err) => console.warn("Google Sheets chat lead save err:", err))
+
         const leadRes = await fetch(LEADS_API_URL, { cache: "no-store" })
         const existingLeads = leadRes.ok ? await leadRes.json() : []
         const updatedLeads = Array.isArray(existingLeads) ? [newLead, ...existingLeads] : [newLead]
@@ -391,6 +394,15 @@ export function LiveChatWidget({
           text: aiAnswer,
           timestamp: new Date().toISOString(),
         }
+
+        // Tự động ghi nhật ký chat lên Google Sheets
+        sendChatLogToGoogleSheets({
+          id: aiMsg.id,
+          parentName: currentSession.customerName,
+          parentMessage: question,
+          aiResponse: aiAnswer,
+          topic: "Tư vấn can thiệp",
+        }).catch(() => {})
 
         setSession((prev) => {
           if (!prev) return null

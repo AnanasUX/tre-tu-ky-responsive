@@ -5,6 +5,8 @@
  * Tự động đồng bộ với Kênh Quản trị CMS
  */
 
+import { sendAccessLogToGoogleSheets } from "../services/googleSheetsService";
+
 export interface AccessLogRecord {
   id: string;
   timestamp: string;
@@ -166,6 +168,11 @@ export async function trackLandingPageAccess(): Promise<void> {
   } catch (err) {
     console.warn("Could not save access log to localStorage:", err);
   }
+
+  // 1.1 Tự động đồng bộ nhật ký truy cập lên Google Trang tính
+  try {
+    sendAccessLogToGoogleSheets(newLog).catch(() => {});
+  } catch {}
 
   // 2. Bắn sự kiện CustomEvent và BroadcastChannel
   try {

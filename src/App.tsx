@@ -21,6 +21,7 @@ import { getHeatmapTracker } from "./analytics/heatmapTracker"
 import { LightboxModal, type LightboxImage } from "./LightboxModal"
 import { TeacherDetailModal, type TeacherData, getTeacherExtraDetails } from "./TeacherDetailModal"
 import { LiveChatWidget } from "./LiveChatWidget"
+import { sendLeadToGoogleSheets } from "./services/googleSheetsService"
 
 const LandingConfigContext = createContext<LandingPageConfig>(initialLandingPageConfig)
 const useConfig = () => useContext(LandingConfigContext)
@@ -1119,6 +1120,10 @@ function Contact() {
     }
 
     try {
+      // 1. Tự động lưu trữ vào Cơ sở dữ liệu Google Trang tính (100% Miễn phí trọn đời)
+      sendLeadToGoogleSheets(lead).catch((err) => console.warn("Google Sheets save error:", err));
+
+      // 2. Lưu trữ dự phòng đám mây KVDB
       const url = "https://kvdb.io/RtALwN4JAnjEQUjqKLgAuk/consultation_leads"
       const res = await fetch(url, { cache: "no-store" })
       const leads = res.ok ? await res.json() : []
@@ -1144,7 +1149,7 @@ function Contact() {
   }
 
   const phone = config.phone || "096 290 3942"
-  const address = config.address || "TDP Duyên Phúc, xã Hưng Hà, Tỉnh Hưng Yên"
+  const address = config.address || "TDP Duyên Phúc, xã Hưng Hà, Tỉnh Thái Bình"
 
   return (
     <section className="contact" id="contact">
