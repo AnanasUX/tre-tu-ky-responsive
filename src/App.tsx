@@ -19,6 +19,7 @@ import Lenis from "lenis"
 import "lenis/dist/lenis.css"
 import { getHeatmapTracker } from "./analytics/heatmapTracker"
 import { LightboxModal, type LightboxImage } from "./LightboxModal"
+import { TeacherDetailModal, type TeacherData, getTeacherExtraDetails } from "./TeacherDetailModal"
 import { LiveChatWidget } from "./LiveChatWidget"
 
 const LandingConfigContext = createContext<LandingPageConfig>(initialLandingPageConfig)
@@ -209,12 +210,41 @@ function getSection(config: LandingPageConfig, id: string): LandingSection | und
   return config.sections.find((s) => s.id === id)
 }
 
+/**
+ * Kiểm tra xem người dùng có đang truy cập từ đường link chiến dịch Zalo:
+ * https://ananasux.github.io/tre-tu-ky-responsive/?zarsrc=30&utm_source=zalo&utm_medium=zalo&utm_campaign=zalo#resources
+ * Khi truy cập bằng link này, mục "Đội ngũ" sẽ tự động được ẩn đi để tối ưu luồng phễu tài nguyên Zalo.
+ * Đối với người dùng thông thường truy cập trang web, mục "Đội ngũ" vẫn hiển thị đầy đủ và tương tác bình thường.
+ */
+export function isZaloCampaignResourcesLanding(): boolean {
+  if (typeof window === "undefined") return false
+  try {
+    const search = window.location.search.toLowerCase()
+    const hash = window.location.hash.toLowerCase()
+    const href = window.location.href.toLowerCase()
+
+    const hasZaloParams =
+      search.includes("zarsrc=30") ||
+      (search.includes("utm_source=zalo") && search.includes("utm_campaign=zalo")) ||
+      href.includes("zarsrc=30")
+
+    const isTargetingResources =
+      hash.includes("resources") || search.includes("resources") || hasZaloParams
+
+    return hasZaloParams && isTargetingResources
+  } catch {
+    return false
+  }
+}
+
 function Header({
   scrolled,
   activeSection = "about",
+  hideTeam = false,
 }: {
   scrolled: boolean
   activeSection?: string
+  hideTeam?: boolean
 }) {
   const config = useConfig()
   const [open, setOpen] = useState(false)
@@ -266,7 +296,7 @@ function Header({
           className={`nav ${open ? "nav--open" : ""}`}
           aria-label="Điều hướng chính"
         >
-          {config.navigation.map((item, index) => {
+          {(hideTeam ? config.navigation.filter((item) => item.path !== "#team") : config.navigation).map((item, index) => {
             const sectionId = item.path.replace("#", "")
             const isActive = activeSection === sectionId || (!activeSection && index === 0)
             return (
@@ -612,6 +642,201 @@ function Process() {
           ))}
         </div>
       </div>
+    </section>
+  )
+}
+
+function Team({ hideTeam = false }: { hideTeam?: boolean }) {
+  const config = useConfig()
+  const section = getSection(config, "team")
+  const [selectedTeacher, setSelectedTeacher] = useState<TeacherData | null>(null)
+
+  if (hideTeam) return null
+  if (section && !section.enabled) return null
+
+  const eyebrow = section?.eyebrow ?? "Chuyên môn cao · Tận tâm · Giàu tình thương"
+  const title = section?.title ?? "Đội ngũ chuyên gia & giáo viên tận tâm"
+  const description =
+    section?.description ??
+    "Được đào tạo bài bản chuyên sâu về Tâm lý học, Giáo dục Đặc biệt và Âm ngữ trị liệu, luôn kiên nhẫn và đồng hành bằng cả trái tim."
+
+  const defaultTeam = [
+    {
+      name: "ThS. Hoàng Thị Hương",
+      role: "Giám đốc chuyên môn • ThS Tâm lý học lâm sàng",
+      bio: "Hơn 10 năm kinh nghiệm trong công tác đánh giá, chẩn đoán và thiết kế chương trình can thiệp sớm cho trẻ tự kỷ, chậm phát triển.",
+      image: "",
+    },
+    {
+      name: "CN. Nguyễn Thu Trang",
+      role: "Chuyên viên Âm ngữ trị liệu",
+      bio: "Tốt nghiệp Đại học Sư phạm Hà Nội chuyên ngành Giáo dục Đặc biệt, sở hữu chứng chỉ quốc tế về trị liệu ngôn ngữ và phát triển giao tiếp.",
+      image: "",
+    },
+    {
+      name: "CN. Lê Hoàng Minh",
+      role: "Chuyên viên Điều hòa Cảm giác (OT)",
+      bio: "Chuyên sâu về trị liệu tích hợp giác quan, vận động chức năng và thiết kế môi trường học tập an toàn, thân thiện cho trẻ.",
+      image: "",
+    },
+    {
+      name: "Cô Vũ Mai Anh",
+      role: "Giáo viên Can thiệp sớm & Tiền tiểu học",
+      bio: "Giàu kinh nghiệm trong việc xây dựng thói quen tự lập, điều hòa cảm xúc hành vi và chuẩn bị tâm thế vững vàng vào lớp 1 cho trẻ.",
+      image: "",
+    },
+  ]
+
+  const members =
+    section?.items && section.items.length > 0
+      ? section.items.map((item) => ({
+          name: item.title,
+          role: item.meta || "Chuyên môn / vai trò",
+          bio: item.description ?? "",
+          image: item.image,
+        }))
+      : defaultTeam
+
+  const handleTeacherClick = (item: { name: string; role: string; bio: string; image?: string }) => {
+    setSelectedTeacher(getTeacherExtraDetails(item))
+  }
+
+  const handleConsultTeacher = (teacherName: string) => {
+    setSelectedTeacher(null)
+    const contactEl = document.querySelector("#contact")
+    if (contactEl) {
+      contactEl.scrollIntoView({ behavior: "smooth" })
+      setTimeout(() => {
+        const textarea = document.querySelector("#message") as HTMLTextAreaElement
+        if (textarea) {
+          textarea.value = `Gia đình mong muốn được đặt lịch tư vấn và đánh giá phát triển trực tiếp cùng Cô ${teacherName}.`
+          textarea.focus()
+        }
+      }, 500)
+    }
+  }
+
+  return (
+    <section className="section section--team" id="team">
+      <div className="container">
+        <SectionTitle
+          eyebrow={eyebrow}
+          title={title}
+          description={description}
+        />
+        <div className="team-grid">
+          {members.map((item, index) => (
+            <article
+              className={`profile-card profile-card--interactive team-card reveal reveal-delay-${(index % 4) + 1}`}
+              key={`${item.name}-${index}`}
+              onClick={() => handleTeacherClick(item)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  handleTeacherClick(item)
+                }
+              }}
+              title={`Bấm để xem bằng cấp và hồ sơ chuyên môn của ${item.name}`}
+            >
+              <div className="profile-card__portrait">
+                {item.image ? (
+                  <img src={item.image} alt={item.name} />
+                ) : (
+                  <div className="profile-card__placeholder" aria-hidden="true">
+                    <Icon name="profile" size={52} />
+                    <span>{item.name}</span>
+                  </div>
+                )}
+                <span className="profile-card__inspect-badge">
+                  <span>🔍 Xem hồ sơ & bằng cấp</span>
+                </span>
+              </div>
+              <div className="profile-card__content">
+                <h3>{item.name}</h3>
+                <span className="profile-card__role">{item.role}</span>
+                <p>{item.bio}</p>
+                <div className="profile-card__footer-pill">
+                  <span className="status-label">Chuyên gia chính thức</span>
+                  <span className="profile-card__view-link">Xem hồ sơ ↗</span>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        {/* Nút phụ trợ Zalo đặt ngay chân khối Đội ngũ (Tối ưu phễu chuyển đổi Zalo Campaign) */}
+        <div className="zalo-direct-cta-card reveal reveal-delay-2">
+          <div className="zalo-direct-cta-card__badge">
+            <Icon name="shield" size={15} />
+            <span>Cam kết bảo mật 100% thông tin gia đình</span>
+          </div>
+          <p>Ba mẹ muốn trao đổi riêng tư về tình trạng của con với Cô Hương?</p>
+          <a
+            href="https://zalo.me/0962903942"
+            className="btn-zalo-direct"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-heatmap-id="cta-team-zalo-direct"
+          >
+            <span>Chat Zalo tư vấn riêng tư với Cô Hương (096 290 3942)</span>
+          </a>
+        </div>
+
+        {/* Contextual Inline CTA & Cam kết Bảo mật */}
+        <div className="team-inline-cta-card reveal">
+          <div className="team-inline-cta-header">
+            <span className="team-inline-cta-shield">
+              <Icon name="shield" size={16} />
+              <span>Cam kết bảo mật 100% hồ sơ & hình ảnh của trẻ</span>
+            </span>
+            <h3>Ba mẹ muốn nhận tư vấn định hướng trực tiếp từ các Cô?</h3>
+            <p>
+              Mỗi biểu hiện nhỏ của con đều mang ý nghĩa quan trọng trong giai đoạn phát triển vàng. Đừng ngần ngại kết nối ngay để được Cô Hương và ban chuyên môn lắng nghe, chia sẻ và đề xuất lộ trình phù hợp nhất.
+            </p>
+          </div>
+          <div className="team-inline-cta-actions">
+            <a
+              href="https://zalo.me/0962903942"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="button button--zalo-highlight"
+              data-heatmap-id="cta-team-inline-zalo"
+            >
+              💬 Nhắn tin Zalo với Cô Hương ngay
+            </a>
+            <a
+              href="#contact"
+              className="button button--secondary-outline"
+              data-heatmap-id="cta-team-inline-form"
+              onClick={(e) => {
+                e.preventDefault()
+                const lenis = (window as any).__lenis
+                if (lenis) lenis.scrollTo("#contact", { offset: -72, duration: 1.2 })
+                else document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" })
+              }}
+            >
+              📅 Đặt lịch đánh giá phát triển miễn phí
+            </a>
+          </div>
+          <div className="team-inline-cta-trust-tags">
+            <span>⚡ Phản hồi Zalo trong vòng 3 - 5 phút (kể cả ngoài giờ & cuối tuần)</span>
+            <span>•</span>
+            <span>🔒 Tuyệt đối không chia sẻ thông tin cho bên thứ ba</span>
+            <span>•</span>
+            <span>⭐ Miễn phí 100% buổi trao đổi định hướng ban đầu</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Teacher Detail Modal */}
+      <TeacherDetailModal
+        isOpen={selectedTeacher !== null}
+        teacher={selectedTeacher}
+        onClose={() => setSelectedTeacher(null)}
+        onConsult={handleConsultTeacher}
+      />
     </section>
   )
 }
@@ -1044,7 +1269,7 @@ function Contact() {
   )
 }
 
-function Footer() {
+function Footer({ hideTeam = false }: { hideTeam?: boolean }) {
   const config = useConfig()
   const section = getSection(config, "footer")
   if (section && !section.enabled) return null
@@ -1064,6 +1289,7 @@ function Footer() {
           <h3>Khám phá</h3>
           <a href="#about">Giới thiệu</a>
           <a href="#areas">Lĩnh vực hỗ trợ</a>
+          {!hideTeam && <a href="#team">Đội ngũ</a>}
           <a href="#resources">Tài nguyên</a>
         </div>
         <div>
@@ -1220,7 +1446,7 @@ function FloatingContactBar({
   )
 }
 
-function useScrollEffects(dep: any) {
+function useScrollEffects(dep: any, hideTeam = false) {
   const [scrolled, setScrolled] = useState(false)
   const [scrollProgress, setScrollProgress] = useState(0)
   const [showBackToTop, setShowBackToTop] = useState(false)
@@ -1247,7 +1473,9 @@ function useScrollEffects(dep: any) {
       setScrollProgress(progress)
 
       // Scrollspy: xác định section đang hiển thị trên màn hình
-      const sectionIds = ["about", "areas", "process", "gallery", "resources", "faq", "contact"]
+      const sectionIds = hideTeam
+        ? ["about", "areas", "process", "gallery", "resources", "faq", "contact"]
+        : ["about", "areas", "process", "team", "gallery", "resources", "faq", "contact"]
       const checkY = scroll + 150
       for (let i = sectionIds.length - 1; i >= 0; i--) {
         const el = document.getElementById(sectionIds[i])
@@ -1347,7 +1575,19 @@ function useScrollEffects(dep: any) {
 export default function App() {
   const [config, setConfig] = useState<LandingPageConfig>(loadLandingConfig)
   const [isChatOpen, setIsChatOpen] = useState(false)
-  const { scrolled, scrollProgress, showBackToTop, scrollToTop, activeSection } = useScrollEffects(config)
+  const [hideTeam, setHideTeam] = useState(isZaloCampaignResourcesLanding)
+
+  useEffect(() => {
+    const checkUrl = () => setHideTeam(isZaloCampaignResourcesLanding())
+    window.addEventListener("popstate", checkUrl)
+    window.addEventListener("hashchange", checkUrl)
+    return () => {
+      window.removeEventListener("popstate", checkUrl)
+      window.removeEventListener("hashchange", checkUrl)
+    }
+  }, [])
+
+  const { scrolled, scrollProgress, showBackToTop, scrollToTop, activeSection } = useScrollEffects(config, hideTeam)
 
   useEffect(() => {
     // 1. Fetch latest config from cloud
@@ -1400,16 +1640,17 @@ export default function App() {
   return (
     <LandingConfigContext.Provider value={config}>
       <ScrollProgressBar progress={scrollProgress} />
-      <Header scrolled={scrolled} activeSection={activeSection} />
+      <Header scrolled={scrolled} activeSection={activeSection} hideTeam={hideTeam} />
       <Hero />
       <Mission />
       <Areas />
       <Process />
+      {!hideTeam && <Team hideTeam={hideTeam} />}
       <Space />
       <Resources />
       <Faq />
       <Contact />
-      <Footer />
+      <Footer hideTeam={hideTeam} />
       <FloatingContactBar
         phone={config.phone || "096 290 3942"}
         facebook={config.facebook || "https://www.facebook.com"}
