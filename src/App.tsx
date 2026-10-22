@@ -1131,7 +1131,7 @@ function Contact() {
   }
 
   const phone = config.phone || "096 290 3942"
-  const address = config.address || "TDP Duyên Phúc, xã Hưng Hà, Tỉnh Thái Bình"
+  const address = config.address || "TDP Duyên Phúc, xã Hưng Hà, Tỉnh Hưng Yên"
 
   return (
     <section className="contact" id="contact">
@@ -1302,7 +1302,7 @@ function Footer({ hideTeam = false }: { hideTeam?: boolean }) {
       </div>
       <div className="container footer__bottom">
         <span>© 2026 Trung tâm Hỗ trợ Trẻ tự kỷ Cô Hương. Bảo lưu mọi quyền.</span>
-        <span>{config.address || "TDP Duyên Phúc, xã Hưng Hà, Tỉnh Thái Bình"} · {config.phone || "096 290 3942"}</span>
+        <span>{config.address || "TDP Duyên Phúc, xã Hưng Hà, Tỉnh Hưng Yên"} · {config.phone || "096 290 3942"}</span>
       </div>
     </footer>
   )
@@ -1344,6 +1344,10 @@ function FloatingContactBar({
   phone,
   facebook,
   zalo,
+  facebookIcon,
+  zaloIcon,
+  phoneIcon,
+  buttonSize = 52,
   enableFacebook = true,
   enableZalo = true,
   enablePhone = true,
@@ -1354,6 +1358,10 @@ function FloatingContactBar({
   phone?: string
   facebook?: string
   zalo?: string
+  facebookIcon?: string
+  zaloIcon?: string
+  phoneIcon?: string
+  buttonSize?: number
   enableFacebook?: boolean
   enableZalo?: boolean
   enablePhone?: boolean
@@ -1376,7 +1384,7 @@ function FloatingContactBar({
     zaloLink = `https://zalo.me/${cleanPhone}`
   }
 
-  const fbLink = facebook && facebook.trim() ? facebook.trim() : "https://www.facebook.com"
+  const fbLink = facebook && facebook.trim() ? facebook.trim() : "https://www.facebook.com/chanh.chua.330"
   const phoneCall = `tel:${cleanPhone}`
 
   if (!enableFacebook && !enableZalo && !enablePhone) {
@@ -1396,6 +1404,7 @@ function FloatingContactBar({
         aria-label="Chat trực tiếp với Cô Hương và chuyên viên"
         title="Chat trực tiếp với Cô Hương và chuyên viên"
         data-heatmap-id="cta-float-chat"
+        style={buttonSize ? { width: buttonSize, height: buttonSize, minWidth: buttonSize, minHeight: buttonSize } : undefined}
       >
         {enablePulse && <span className="floating-contact__pulse" />}
         <span className="floating-contact__icon-chat">💬</span>
@@ -1411,9 +1420,14 @@ function FloatingContactBar({
           aria-label="Nhắn tin Facebook tư vấn"
           title="Nhắn tin Facebook tư vấn"
           data-heatmap-id="cta-float-facebook"
+          style={buttonSize ? { width: buttonSize, height: buttonSize, minWidth: buttonSize, minHeight: buttonSize } : undefined}
         >
           {enablePulse && <span className="floating-contact__pulse" />}
-          <Icon name="facebook" size={20} />
+          {facebookIcon ? (
+            <img src={facebookIcon} alt="Facebook" style={{ width: 24, height: 24, objectFit: "contain" }} />
+          ) : (
+            <Icon name="facebook" size={20} />
+          )}
         </a>
       )}
       {enableZalo && (
@@ -1425,9 +1439,14 @@ function FloatingContactBar({
           aria-label="Nhắn tin Zalo tư vấn"
           title="Nhắn tin Zalo tư vấn"
           data-heatmap-id="cta-float-zalo"
+          style={buttonSize ? { width: buttonSize, height: buttonSize, minWidth: buttonSize, minHeight: buttonSize } : undefined}
         >
           {enablePulse && <span className="floating-contact__pulse" />}
-          <span className="floating-contact__text">Zalo</span>
+          {zaloIcon ? (
+            <img src={zaloIcon} alt="Zalo" style={{ width: 24, height: 24, objectFit: "contain" }} />
+          ) : (
+            <span className="floating-contact__text">Zalo</span>
+          )}
         </a>
       )}
       {enablePhone && (
@@ -1437,9 +1456,14 @@ function FloatingContactBar({
           aria-label={`Gọi hotline tư vấn ${phone || "096 290 3942"}`}
           title={`Gọi hotline tư vấn ${phone || "096 290 3942"}`}
           data-heatmap-id="cta-float-phone"
+          style={buttonSize ? { width: buttonSize, height: buttonSize, minWidth: buttonSize, minHeight: buttonSize } : undefined}
         >
           {enablePulse && <span className="floating-contact__pulse" />}
-          <Icon name="phone" size={20} />
+          {phoneIcon ? (
+            <img src={phoneIcon} alt="Hotline" style={{ width: 24, height: 24, objectFit: "contain" }} />
+          ) : (
+            <Icon name="phone" size={20} />
+          )}
         </a>
       )}
     </div>
@@ -1653,8 +1677,12 @@ export default function App() {
       <Footer hideTeam={hideTeam} />
       <FloatingContactBar
         phone={config.phone || "096 290 3942"}
-        facebook={config.facebook || "https://www.facebook.com"}
+        facebook={config.facebook || "https://www.facebook.com/chanh.chua.330"}
         zalo={config.zalo || config.phone || "096 290 3942"}
+        facebookIcon={config.floatingFacebookIcon}
+        zaloIcon={config.floatingZaloIcon}
+        phoneIcon={config.floatingPhoneIcon}
+        buttonSize={config.floatingButtonSize || 52}
         enableFacebook={config.enableFloatingFacebook !== false}
         enableZalo={config.enableFloatingZalo !== false}
         enablePhone={config.enableFloatingPhone !== false}
