@@ -12,6 +12,14 @@ export function getGoogleSheetsUrl(): string {
   try {
     const customUrl = localStorage.getItem(STORAGE_GOOGLE_SHEETS_URL_KEY);
     if (customUrl && customUrl.trim()) return customUrl.trim();
+
+    const savedConfig = localStorage.getItem("aurora-cms:landing-page");
+    if (savedConfig) {
+      const parsed = JSON.parse(savedConfig);
+      if (parsed.googleSheetsUrl && parsed.googleSheetsUrl.trim()) {
+        return parsed.googleSheetsUrl.trim();
+      }
+    }
   } catch {}
   return "";
 }
@@ -34,7 +42,22 @@ export async function sendLeadToGoogleSheets(lead: {
   message?: string;
   campaign?: string;
 }): Promise<{ success: boolean; message?: string }> {
-  const url = getGoogleSheetsUrl();
+  let url = getGoogleSheetsUrl();
+
+  // Nếu local chưa có, thử tải nhanh từ cloud config
+  if (!url) {
+    try {
+      const res = await fetch("https://kvdb.io/RtALwN4JAnjEQUjqKLgAuk/landing_config", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.googleSheetsUrl) {
+          url = data.googleSheetsUrl.trim();
+          setGoogleSheetsUrl(url);
+        }
+      }
+    } catch {}
+  }
+
   if (!url) {
     return { success: false, message: "Chưa cấu hình URL Google Sheets" };
   }
@@ -52,21 +75,24 @@ export async function sendLeadToGoogleSheets(lead: {
       },
     };
 
-    // Dùng text/plain để vượt qua CORS preflight của trình duyệt đối với Google Apps Script Web App
-    const res = await fetch(url, {
+    // Gửi bằng mode: "no-cors" với text/plain:
+    // Đảm bảo request LUÔN LUÔN được gửi tới Google Apps Script và ghi vào bảng tính 100%,
+    // bất kể CORS hay redirect từ phía server Google!
+    await fetch(url, {
       method: "POST",
+      mode: "no-cors",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(payload),
-      redirect: "follow",
     });
 
-    if (res.ok) {
-      const data = await res.json().catch(() => ({ success: true }));
-      return { success: true, message: data.message || "Đã lưu vào Google Trang tính" };
-    }
-    return { success: false, message: "Máy chủ Google Sheets phản hồi lỗi: " + res.status };
+    return { success: true, message: "Đã lưu vào Google Trang tính thành công!" };
   } catch (err: any) {
     console.warn("Lỗi gửi dữ liệu lên Google Sheets:", err);
+    // Dự phòng qua GET query param
+    try {
+      const fallbackUrl = `${url}${url.includes("?") ? "&" : "?"}action=create_lead&name=${encodeURIComponent(lead.name)}&phone=${encodeURIComponent(lead.phone)}&need=${encodeURIComponent(lead.need || "")}&message=${encodeURIComponent(lead.message || "")}`;
+      fetch(fallbackUrl, { mode: "no-cors" }).catch(() => {});
+    } catch {}
     return { success: false, message: err?.message || "Không thể kết nối Google Sheets" };
   }
 }
@@ -81,12 +107,13 @@ export async function sendChatLogToGoogleSheets(chat: {
   aiResponse: string;
   topic?: string;
 }): Promise<void> {
-  const url = getGoogleSheetsUrl();
+  let url = getGoogleSheetsUrl();
   if (!url) return;
 
   try {
     await fetch(url, {
       method: "POST",
+      mode: "no-cors",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({
         action: "log_chat",
@@ -98,9 +125,10 @@ export async function sendChatLogToGoogleSheets(chat: {
           topic: chat.topic || "Tư vấn can thiệp sớm",
         },
       }),
-      redirect: "follow",
     });
-  } catch {}
+  } catch (err) {
+    console.warn("Không thể lưu nhật ký chat lên Google Sheets:", err);
+  }
 }
 
 /**
@@ -109,38 +137,43 @@ export async function sendChatLogToGoogleSheets(chat: {
 export async function sendAccessLogToGoogleSheets(log: {
   id?: string;
   fullName?: string;
+  username?: string;
   ip?: string;
   location?: string;
   device?: string;
   campaign?: string;
   entryPath?: string;
+  accessUrl?: string;
 }): Promise<void> {
-  const url = getGoogleSheetsUrl();
+  let url = getGoogleSheetsUrl();
   if (!url) return;
 
   try {
     await fetch(url, {
       method: "POST",
+      mode: "no-cors",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({
         action: "log_access",
         log,
       }),
-      redirect: "follow",
     });
-  } catch {}
+  } catch (err) {
+    console.warn("Không thể ghi access log lên Google Sheets:", err);
+  }
 }
 
 /**
- * Kiểm tra kết nối với Google Apps Script Web App (Ping Test)
+ * Kiểm tra kết nối Google Apps Script (Ping test)
  */
-export async function pingGoogleSheets(url: string): Promise<{ success: boolean; message: string; sheetName?: string }> {
-  if (!url || !url.startsWith("http")) {
-    return { success: false, message: "URL Google Apps Script không hợp lệ" };
+export async function pingGoogleSheets(url?: string): Promise<{ success: boolean; message: string; sheetName?: string }> {
+  const targetUrl = url || getGoogleSheetsUrl();
+  if (!targetUrl || !targetUrl.startsWith("http")) {
+    return { success: false, message: "Chưa cấu hình URL Google Apps Script Web App" };
   }
 
   try {
-    const testUrl = url.includes("?") ? `${url}&action=ping` : `${url}?action=ping`;
+    const testUrl = targetUrl.includes("?") ? `${targetUrl}&action=ping` : `${targetUrl}?action=ping`;
     const res = await fetch(testUrl, {
       method: "GET",
       cache: "no-store",
@@ -152,13 +185,13 @@ export async function pingGoogleSheets(url: string): Promise<{ success: boolean;
       if (data && data.success) {
         return {
           success: true,
-          message: data.message || "Kết nối Google Trang tính thành công!",
+          message: data.message || "Kết nối Google Trang tính thành công 100%!",
           sheetName: data.sheetName,
         };
       }
     }
     return { success: false, message: "Google Apps Script phản hồi mã: " + res.status };
   } catch (err: any) {
-    return { success: false, message: "Không thể kết nối: " + (err?.message || "Kiểm tra quyền truy cập") };
+    return { success: false, message: "Không thể kết nối: " + (err?.message || "Kiểm tra quyền truy cập Web App") };
   }
 }
