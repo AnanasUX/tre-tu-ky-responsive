@@ -240,10 +240,12 @@ export function isZaloCampaignResourcesLanding(): boolean {
 function Header({
   scrolled,
   activeSection = "about",
+  onNavigate,
   hideTeam = false,
 }: {
   scrolled: boolean
   activeSection?: string
+  onNavigate?: (id: string) => void
   hideTeam?: boolean
 }) {
   const config = useConfig()
@@ -266,12 +268,23 @@ function Header({
 
   const scrollToHash = (hash: string) => {
     setOpen(false)
+    const cleanId = hash.replace("#", "")
+    if (onNavigate) {
+      onNavigate(cleanId)
+    }
+
+    try {
+      window.history.pushState(null, "", hash)
+    } catch {}
+
     const lenis = (window as any).__lenis
-    if (lenis) {
-      lenis.scrollTo(hash, { offset: -72, duration: 1.2 })
-    } else {
-      const el = document.querySelector(hash)
-      el?.scrollIntoView({ behavior: "smooth" })
+    const targetEl = document.querySelector(hash) as HTMLElement | null
+
+    if (lenis && targetEl) {
+      lenis.scrollTo(targetEl, { offset: -74, duration: 1.1, immediate: false })
+    } else if (targetEl) {
+      const topPos = targetEl.getBoundingClientRect().top + window.pageYOffset - 74
+      window.scrollTo({ top: topPos, behavior: "smooth" })
     }
   }
 
@@ -1476,6 +1489,15 @@ function useScrollEffects(dep: any, hideTeam = false) {
   const [showBackToTop, setShowBackToTop] = useState(false)
   const [activeSection, setActiveSection] = useState("about")
   const lenisRef = useRef<Lenis | null>(null)
+  const isNavigatingRef = useRef(false)
+
+  const navigateToSection = (sectionId: string) => {
+    isNavigatingRef.current = true
+    setActiveSection(sectionId)
+    setTimeout(() => {
+      isNavigatingRef.current = false
+    }, 1300)
+  }
 
   useEffect(() => {
     // Khởi tạo Lenis smooth momentum scroll cao cấp (dùng lerp damping siêu mượt)
@@ -1496,15 +1518,23 @@ function useScrollEffects(dep: any, hideTeam = false) {
       setShowBackToTop(scroll > 350)
       setScrollProgress(progress)
 
+      if (isNavigatingRef.current) return
+
       // Scrollspy: xác định section đang hiển thị trên màn hình
       const sectionIds = hideTeam
         ? ["about", "areas", "process", "gallery", "resources", "faq", "contact"]
         : ["about", "areas", "process", "team", "gallery", "resources", "faq", "contact"]
-      const checkY = scroll + 150
+
+      if (scroll < 120) {
+        setActiveSection("about")
+        return
+      }
+
+      const checkY = scroll + 160
       for (let i = sectionIds.length - 1; i >= 0; i--) {
         const el = document.getElementById(sectionIds[i])
         if (el) {
-          const top = el.offsetTop
+          const top = el.getBoundingClientRect().top + window.pageYOffset
           if (checkY >= top) {
             setActiveSection(sectionIds[i])
             break
@@ -1539,7 +1569,7 @@ function useScrollEffects(dep: any, hideTeam = false) {
         try {
           const targetEl = document.querySelector(targetHash)
           if (targetEl) {
-            lenis.scrollTo(targetHash, { offset: -72, duration: 1.2 })
+            lenis.scrollTo(targetHash, { offset: -74, duration: 1.2 })
             const cleanId = targetHash.replace("#", "")
             setActiveSection(cleanId)
           }
@@ -1553,7 +1583,7 @@ function useScrollEffects(dep: any, hideTeam = false) {
       delete (window as any).__lenis
       window.removeEventListener("scroll", handleNativeScroll)
     }
-  }, [])
+  }, [hideTeam])
 
   useEffect(() => {
     // Khi dữ liệu trang cập nhật, cập nhật lại kích thước khung cuộn Lenis
@@ -1593,7 +1623,7 @@ function useScrollEffects(dep: any, hideTeam = false) {
     }
   }
 
-  return { scrolled, scrollProgress, showBackToTop, scrollToTop, activeSection }
+  return { scrolled, scrollProgress, showBackToTop, scrollToTop, activeSection, navigateToSection }
 }
 
 export default function App() {
@@ -1611,7 +1641,7 @@ export default function App() {
     }
   }, [])
 
-  const { scrolled, scrollProgress, showBackToTop, scrollToTop, activeSection } = useScrollEffects(config, hideTeam)
+  const { scrolled, scrollProgress, showBackToTop, scrollToTop, activeSection, navigateToSection } = useScrollEffects(config, hideTeam)
 
   useEffect(() => {
     // 1. Fetch latest config from cloud
@@ -1664,7 +1694,7 @@ export default function App() {
   return (
     <LandingConfigContext.Provider value={config}>
       <ScrollProgressBar progress={scrollProgress} />
-      <Header scrolled={scrolled} activeSection={activeSection} hideTeam={hideTeam} />
+      <Header scrolled={scrolled} activeSection={activeSection} onNavigate={navigateToSection} hideTeam={hideTeam} />
       <Hero />
       <Mission />
       <Areas />
