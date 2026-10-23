@@ -21,6 +21,7 @@ import { getHeatmapTracker } from "./analytics/heatmapTracker"
 import { LightboxModal, type LightboxImage } from "./LightboxModal"
 import { TeacherDetailModal, type TeacherData, getTeacherExtraDetails } from "./TeacherDetailModal"
 import { LiveChatWidget } from "./LiveChatWidget"
+import { DevelopmentalScreener } from "./DevelopmentalScreener"
 import { sendLeadToGoogleSheets } from "./services/googleSheetsService"
 
 const LandingConfigContext = createContext<LandingPageConfig>(initialLandingPageConfig)
@@ -601,6 +602,24 @@ function Areas() {
           </div>
           <div className="areas-mini-cta__actions">
             <a
+              href="#screener"
+              className="button button--primary"
+              data-heatmap-id="cta-areas-mini-screener"
+              onClick={(e) => {
+                e.preventDefault();
+                const screenerEl = document.querySelector("#screener");
+                const lenis = (window as any).__lenis;
+                if (lenis && screenerEl) {
+                  lenis.scrollTo(screenerEl, { offset: -74, duration: 1.1 });
+                } else if (screenerEl) {
+                  screenerEl.scrollIntoView({ behavior: "smooth" });
+                }
+              }}
+              style={{ background: "linear-gradient(135deg, #50008b 0%, #7c3aed 100%)", border: "none" }}
+            >
+              🧪 Làm trắc nghiệm sàng lọc 60s
+            </a>
+            <a
               href="https://zalo.me/0962903942"
               target="_blank"
               rel="noopener noreferrer"
@@ -611,14 +630,14 @@ function Areas() {
             </a>
             <a
               href="#contact"
-              className="button button--primary"
+              className="button button--secondary"
               data-heatmap-id="cta-areas-mini-form"
               onClick={(e) => {
                 e.preventDefault();
                 document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" });
               }}
             >
-              📅 Đăng ký đánh giá miễn phí
+              📅 Đăng ký đánh giá 1:1
             </a>
           </div>
         </div>
@@ -1756,6 +1775,7 @@ export default function App() {
       <Hero />
       <Mission />
       <Areas />
+      <DevelopmentalScreener />
       <Process />
       {!hideTeam && <Team hideTeam={hideTeam} />}
       <Space />

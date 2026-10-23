@@ -600,8 +600,24 @@ export function LiveChatWidget({
               <div ref={messagesEndRef} />
             </div>
 
-            {/* QUICK SUGGESTION PILLS */}
+            {/* SMART QUICK SUGGESTION CHIPS */}
             <div className="live-chat-quick-pills">
+              <button
+                type="button"
+                onClick={() => {
+                  onClose()
+                  const screenerEl = document.querySelector("#screener")
+                  const lenis = (window as any).__lenis
+                  if (lenis && screenerEl) {
+                    lenis.scrollTo(screenerEl, { offset: -74, duration: 1.1 })
+                  } else if (screenerEl) {
+                    screenerEl.scrollIntoView({ behavior: "smooth" })
+                  }
+                }}
+                style={{ background: "#ede9fe", color: "#6d28d9", borderColor: "#ddd6fe", fontWeight: 700 }}
+              >
+                🧪 Làm trắc nghiệm sàng lọc 60s
+              </button>
               <button
                 type="button"
                 onClick={() => handleSendMessage("Bé nhà mình 2 tuổi chưa nói được từ đơn nào, cần hỗ trợ gì ạ?")}
@@ -610,15 +626,21 @@ export function LiveChatWidget({
               </button>
               <button
                 type="button"
-                onClick={() => handleSendMessage("Học phí và thời gian một buổi can thiệp là bao nhiêu ạ?")}
+                onClick={() => handleSendMessage("Địa chỉ lớp Cô Hương ở đâu và lịch học như thế nào ạ?")}
               >
-                💰 Học phí & Ca học
+                📍 Địa chỉ & Lịch học
               </button>
               <button
                 type="button"
-                onClick={() => handleSendMessage("Mình muốn đăng ký lịch đánh giá phát triển miễn phí cho bé.")}
+                onClick={() => handleSendMessage("Mình muốn đăng ký lịch đánh giá phát triển Denver II miễn phí cho bé.")}
               >
-                📅 Đặt lịch đánh giá
+                📅 Đặt lịch đánh giá Denver II
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSendMessage("Học phí và thời gian một buổi can thiệp là bao nhiêu ạ?")}
+              >
+                💰 Học phí & Ca học
               </button>
               <button
                 type="button"
