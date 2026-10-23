@@ -407,7 +407,8 @@ function Hero() {
   const image = section?.image && section.image.startsWith("./") ? section.image : "./images/classroom-main.jpg"
 
   return (
-    <main className="hero" id="top">
+    <main className="hero" id="top" style={{ position: "relative" }}>
+      <div id="about" style={{ position: "absolute", top: 0, left: 0, width: "1px", height: "1px", pointerEvents: "none", opacity: 0 }} />
       <div className="container hero__grid">
         <div className="hero__content reveal">
           <span className="eyebrow">{eyebrow}</span>
@@ -507,7 +508,7 @@ function Mission() {
     : defaultCards
 
   return (
-    <section className="section section--tint" id="about">
+    <section className="section section--tint" id="mission">
       <div className="container">
         <SectionTitle title={title} description={description} />
         <div className="mission-grid">
@@ -1562,10 +1563,18 @@ function useScrollEffects(dep: any, hideTeam = false) {
 
       if (isNavigatingRef.current) return
 
-      // Scrollspy: xác định section đang hiển thị trên màn hình
-      const sectionIds = hideTeam
-        ? ["about", "areas", "process", "gallery", "resources", "faq", "contact"]
-        : ["about", "areas", "process", "team", "gallery", "resources", "faq", "contact"]
+      // Khi vị trí cuộn ở vùng đầu trang (< 350px) hoặc đỉnh #areas vẫn còn ở dưới ngưỡng đọc (> 140px):
+      // Tuyệt đối LUÔN LUÔN là "about" ("Giới thiệu"), ngăn chặn 100% việc nhảy nhầm sang "gallery" ("Không gian")
+      if (scroll < 350) {
+        setActiveSection("about")
+        return
+      }
+
+      const areasEl = document.getElementById("areas")
+      if (areasEl && areasEl.getBoundingClientRect().top > 140) {
+        setActiveSection("about")
+        return
+      }
 
       // Ưu tiên Contact khi người dùng cuộn đến gần đáy trang
       const isBottom = window.innerHeight + scroll >= (document.documentElement.scrollHeight - 60)
@@ -1574,31 +1583,25 @@ function useScrollEffects(dep: any, hideTeam = false) {
         return
       }
 
-      // Khối Hero & Mission ("Giới thiệu"): khi đỉnh #areas vẫn còn ở dưới ngưỡng đọc (> 140px), luôn là "about"
-      const areasEl = document.getElementById("areas")
-      if (areasEl) {
-        const areasTop = areasEl.getBoundingClientRect().top
-        if (areasTop > 140) {
-          setActiveSection("about")
-          return
-        }
-      } else if (scroll < 250) {
-        setActiveSection("about")
-        return
-      }
+      // Scrollspy: xác định section đang hiển thị trên màn hình
+      const sectionIds = hideTeam
+        ? ["about", "areas", "process", "gallery", "resources", "faq", "contact"]
+        : ["about", "areas", "process", "team", "gallery", "resources", "faq", "contact"]
 
       // Duyệt ngược từ cuối về đầu: section nào có đỉnh nằm trên ngưỡng đọc (140px) là section đang xem
       const checkThreshold = 140
+      let matchedSection = "about"
       for (let i = sectionIds.length - 1; i >= 0; i--) {
         const el = document.getElementById(sectionIds[i])
         if (el) {
           const rect = el.getBoundingClientRect()
           if (rect.top <= checkThreshold) {
-            setActiveSection(sectionIds[i])
+            matchedSection = sectionIds[i]
             break
           }
         }
       }
+      setActiveSection(matchedSection)
     }
 
     const handleLenisScroll = (e: any) => {
@@ -1624,11 +1627,14 @@ function useScrollEffects(dep: any, hideTeam = false) {
     const isAboutOrTop = !currentHash || currentHash === "#about" || currentHash === "#top"
 
     if (isAboutOrTop) {
-      window.scrollTo(0, 0)
-      lenis.scrollTo(0, { immediate: true })
+      isNavigatingRef.current = true
       setActiveSection("about")
+      window.scrollTo(0, 0)
+      if (document.documentElement) document.documentElement.scrollTop = 0
+      if (document.body) document.body.scrollTop = 0
+      lenis.scrollTo(0, { immediate: true })
 
-      // Chống giật & đảm bảo sau khi render / tải font xong vẫn cố định ở đầu trang
+      // Chống giật & đảm bảo sau khi render / tải font / reflow dữ liệu cloud xong vẫn cố định ở đầu trang
       requestAnimationFrame(() => {
         window.scrollTo(0, 0)
         lenis.scrollTo(0, { immediate: true })
@@ -1639,6 +1645,17 @@ function useScrollEffects(dep: any, hideTeam = false) {
         lenis.scrollTo(0, { immediate: true })
         setActiveSection("about")
       }, 100)
+      setTimeout(() => {
+        window.scrollTo(0, 0)
+        lenis.scrollTo(0, { immediate: true })
+        setActiveSection("about")
+      }, 350)
+      setTimeout(() => {
+        window.scrollTo(0, 0)
+        lenis.scrollTo(0, { immediate: true })
+        setActiveSection("about")
+        isNavigatingRef.current = false // Mở khóa điều hướng sau khi toàn bộ ảnh & reflow ổn định
+      }, 800)
     } else {
       // Nếu là các anchor sâu cụ thể khác (#resources, #faq, #contact, #areas, #process, #team, #gallery)
       setTimeout(() => {
