@@ -9,6 +9,11 @@ import { trackLandingPageAccess } from './analytics/accessLogger'
 // Không cho phép phóng to, thu nhỏ trang web trên cả Mobile và Desktop
 // =========================================================================
 if (typeof window !== 'undefined') {
+  // 0. Tắt phục hồi cuộn tự động của trình duyệt để đảm bảo vào trang luôn bắt đầu từ đầu trang (#top)
+  if ('scrollRestoration' in window.history) {
+    window.history.scrollRestoration = 'manual'
+  }
+
   // 1. Chặn gesture pinch zoom trên Safari iOS
   document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false })
   document.addEventListener('gesturechange', (e) => e.preventDefault(), { passive: false })

@@ -229,8 +229,9 @@ export function isZaloCampaignResourcesLanding(): boolean {
       (search.includes("utm_source=zalo") && search.includes("utm_campaign=zalo")) ||
       href.includes("zarsrc=30")
 
+    // Chỉ kích hoạt luồng phễu tài nguyên khi URL có định hướng rõ ràng tới mục resources
     const isTargetingResources =
-      hash.includes("resources") || search.includes("resources") || hasZaloParams
+      hash.includes("resources") || search.includes("resources")
 
     return hasZaloParams && isTargetingResources
   } catch {
@@ -271,7 +272,7 @@ function Header({
     setOpen(false)
     const cleanId = hash.replace("#", "")
     if (onNavigate) {
-      onNavigate(cleanId)
+      onNavigate(cleanId === "top" ? "about" : cleanId)
     }
 
     try {
@@ -279,6 +280,17 @@ function Header({
     } catch {}
 
     const lenis = (window as any).__lenis
+
+    // Mục "Giới thiệu" (#about) và Trang chủ (#top) luôn cuộn êm lên đầu trang
+    if (hash === "#about" || hash === "#top") {
+      if (lenis) {
+        lenis.scrollTo(0, { duration: 1.1, immediate: false })
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" })
+      }
+      return
+    }
+
     const targetEl = document.querySelector(hash) as HTMLElement | null
 
     if (lenis && targetEl) {
@@ -298,6 +310,12 @@ function Header({
           aria-label="Về trang chủ"
           onClick={(e) => {
             e.preventDefault()
+            if (onNavigate) {
+              onNavigate("about")
+            }
+            try {
+              window.history.pushState(null, "", "#about")
+            } catch {}
             const lenis = (window as any).__lenis
             if (lenis) lenis.scrollTo(0, { duration: 1.2 })
             else window.scrollTo({ top: 0, behavior: "smooth" })
@@ -1512,7 +1530,7 @@ function useScrollEffects(dep: any, hideTeam = false) {
       touchMultiplier: 1.5,
       smoothWheel: true,
       autoRaf: true,
-      anchors: true,
+      anchors: false, // Dùng hệ thống điều hướng custom để kiểm soát cuộn chính xác
     })
 
     lenisRef.current = lenis
@@ -1530,17 +1548,33 @@ function useScrollEffects(dep: any, hideTeam = false) {
         ? ["about", "areas", "process", "gallery", "resources", "faq", "contact"]
         : ["about", "areas", "process", "team", "gallery", "resources", "faq", "contact"]
 
-      if (scroll < 120) {
+      // Ưu tiên Contact khi người dùng cuộn đến gần đáy trang
+      const isBottom = window.innerHeight + scroll >= (document.documentElement.scrollHeight - 60)
+      if (isBottom) {
+        setActiveSection("contact")
+        return
+      }
+
+      // Khối Hero & Mission ("Giới thiệu"): khi đỉnh #areas vẫn còn ở dưới ngưỡng đọc (> 140px), luôn là "about"
+      const areasEl = document.getElementById("areas")
+      if (areasEl) {
+        const areasTop = areasEl.getBoundingClientRect().top
+        if (areasTop > 140) {
+          setActiveSection("about")
+          return
+        }
+      } else if (scroll < 250) {
         setActiveSection("about")
         return
       }
 
-      const checkY = scroll + 160
+      // Duyệt ngược từ cuối về đầu: section nào có đỉnh nằm trên ngưỡng đọc (140px) là section đang xem
+      const checkThreshold = 140
       for (let i = sectionIds.length - 1; i >= 0; i--) {
         const el = document.getElementById(sectionIds[i])
         if (el) {
-          const top = el.getBoundingClientRect().top + window.pageYOffset
-          if (checkY >= top) {
+          const rect = el.getBoundingClientRect()
+          if (rect.top <= checkThreshold) {
             setActiveSection(sectionIds[i])
             break
           }
@@ -1563,19 +1597,37 @@ function useScrollEffects(dep: any, hideTeam = false) {
 
     lenis.on("scroll", handleLenisScroll)
     window.addEventListener("scroll", handleNativeScroll, { passive: true })
+    window.addEventListener("resize", handleNativeScroll, { passive: true })
 
-    // Initial scroll check
-    handleNativeScroll()
+    // Xử lý vị trí ban đầu khi người dùng vào trang / reload:
+    // Nếu vào URL có #about hoặc #top (hoặc không có hash), hệ thống phải chuyển đến đầu trang
+    const currentHash = window.location.hash.toLowerCase()
+    const isAboutOrTop = !currentHash || currentHash === "#about" || currentHash === "#top"
 
-    // Hỗ trợ cuộn mượt đến anchor hash ban đầu nếu URL có hash (ví dụ: #resources, #faq, #contact)
-    if (window.location.hash) {
-      const targetHash = window.location.hash
+    if (isAboutOrTop) {
+      window.scrollTo(0, 0)
+      lenis.scrollTo(0, { immediate: true })
+      setActiveSection("about")
+
+      // Chống giật & đảm bảo sau khi render / tải font xong vẫn cố định ở đầu trang
+      requestAnimationFrame(() => {
+        window.scrollTo(0, 0)
+        lenis.scrollTo(0, { immediate: true })
+        setActiveSection("about")
+      })
+      setTimeout(() => {
+        window.scrollTo(0, 0)
+        lenis.scrollTo(0, { immediate: true })
+        setActiveSection("about")
+      }, 100)
+    } else {
+      // Nếu là các anchor sâu cụ thể khác (#resources, #faq, #contact, #areas, #process, #team, #gallery)
       setTimeout(() => {
         try {
-          const targetEl = document.querySelector(targetHash)
+          const targetEl = document.querySelector(window.location.hash)
           if (targetEl) {
-            lenis.scrollTo(targetHash, { offset: -74, duration: 1.2 })
-            const cleanId = targetHash.replace("#", "")
+            lenis.scrollTo(targetEl, { offset: -74, duration: 1.2 })
+            const cleanId = window.location.hash.replace("#", "")
             setActiveSection(cleanId)
           }
         } catch {}
@@ -1587,6 +1639,7 @@ function useScrollEffects(dep: any, hideTeam = false) {
       lenisRef.current = null
       delete (window as any).__lenis
       window.removeEventListener("scroll", handleNativeScroll)
+      window.removeEventListener("resize", handleNativeScroll)
     }
   }, [hideTeam])
 
