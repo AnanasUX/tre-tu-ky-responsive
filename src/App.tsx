@@ -528,10 +528,10 @@ function LiveActivityToast() {
   useEffect(() => {
     if (dismissed) return;
 
-    // Hiển thị toast đầu tiên sau 4 giây
+    // Hiển thị toast đầu tiên sau 1.5 giây
     const initialTimer = setTimeout(() => {
       setIsVisible(true);
-    }, 4000);
+    }, 1500);
 
     // Luân chuyển đều đặn mỗi 14 giây
     const interval = setInterval(() => {

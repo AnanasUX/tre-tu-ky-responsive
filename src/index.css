@@ -4022,3 +4022,75 @@ textarea {
 .screener-card button:active {
   transform: scale(0.96);
 }
+
+
+/* 9. Hiệu ứng Parallax Hover & Chiều sâu cho Ảnh Hero */
+.hero__visual img {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s ease;
+}
+
+.hero__visual-wrapper:hover .hero__visual img {
+  transform: scale(1.025) translateY(-4px);
+  box-shadow: 0 24px 50px -10px rgba(80, 0, 139, 0.22);
+}
+
+/* 10. Chấm tín hiệu trực tuyến nhấp nháy cho nút tư vấn (Live Beacon Dot) */
+.header__cta-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #22c55e;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  animation: beaconPulse 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+@keyframes beaconPulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+/* 11. Hiệu ứng nổi bật cho Thẻ Quy trình (Process Step Lift & Glow) */
+.process-step {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+}
+
+.process-step:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 32px -8px rgba(80, 0, 139, 0.12);
+}
+
+/* 12. Hiệu ứng Gradient Shimmer cho Thẻ trắc nghiệm Screener */
+.screener-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.screener-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #50008b, #a855f7, #0284c7, #50008b);
+  background-size: 300% 100%;
+  animation: gradientFlow 8s linear infinite;
+}
+
+@keyframes gradientFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
