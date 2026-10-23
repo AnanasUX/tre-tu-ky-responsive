@@ -392,6 +392,186 @@ function Header({
   )
 }
 
+
+function useAnimatedCounter(endValue: number, duration = 1800, shouldStart = false) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!shouldStart) return;
+    let startTimestamp: number | null = null;
+
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.floor(easeProgress * endValue));
+
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      } else {
+        setCount(endValue);
+      }
+    };
+
+    const animId = window.requestAnimationFrame(step);
+    return () => window.cancelAnimationFrame(animId);
+  }, [endValue, duration, shouldStart]);
+
+  return count;
+}
+
+function StatsTicker() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [hasStarted, setHasStarted] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setHasStarted(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.2 }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  const count1 = useAnimatedCounter(10, 1600, hasStarted);
+  const count2 = useAnimatedCounter(500, 2000, hasStarted);
+  const count3 = useAnimatedCounter(100, 1800, hasStarted);
+
+  const stats = [
+    {
+      icon: "🎖️",
+      value: `${count1}+`,
+      label: "Năm kinh nghiệm chuyên sâu",
+      sub: "Đánh giá & can thiệp sớm cho trẻ",
+    },
+    {
+      icon: "🌱",
+      value: `${count2}+`,
+      label: "Trẻ tiến bộ & hòa nhập",
+      sub: "Tự tin bước vào trường mầm non",
+    },
+    {
+      icon: "👩‍🏫",
+      value: `${count3}%`,
+      label: "Đội ngũ chuyên môn cao",
+      sub: "ThS, CN Giáo dục Đặc biệt & OT",
+    },
+    {
+      icon: "🎯",
+      value: "1:1",
+      label: "Lộ trình IEP độc bản",
+      sub: "Thiết kế riêng theo từng thế mạnh",
+    },
+  ];
+
+  return (
+    <section className="stats-ticker" ref={containerRef}>
+      <div className="container">
+        <div className="stats-ticker__grid">
+          {stats.map((st, i) => (
+            <div className="stats-card" key={i}>
+              <div className="stats-card__icon">{st.icon}</div>
+              <div>
+                <span className="stats-card__num">{st.value}</span>
+                <span className="stats-card__label">{st.label}</span>
+                <span className="stats-card__sub">{st.sub}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function LiveActivityToast() {
+  const [isVisible, setIsVisible] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [dismissed, setDismissed] = useState(false);
+
+  const activities = [
+    {
+      icon: "🌸",
+      title: "Phụ huynh tại Hưng Yên vừa hoàn thành",
+      desc: "Trắc nghiệm mốc 18-24 tháng (Giai đoạn vàng)",
+      time: "2 phút trước",
+    },
+    {
+      icon: "📅",
+      title: "Đăng ký lịch đánh giá thành công",
+      desc: "Mẹ bé Minh Khôi vừa đăng ký Denver II trực tiếp",
+      time: "7 phút trước",
+    },
+    {
+      icon: "💬",
+      title: "Tư vấn trực tuyến qua Zalo",
+      desc: "Cô Hương đang tiếp nhận hồ sơ đánh giá can thiệp",
+      time: "Vừa xong",
+    },
+    {
+      icon: "✨",
+      title: "Tiến bộ mới từ lớp can thiệp",
+      desc: "Bé Bảo Nam vừa hoàn thành giai đoạn bật âm & tương tác",
+      time: "14 phút trước",
+    },
+  ];
+
+  useEffect(() => {
+    if (dismissed) return;
+
+    // Hiển thị toast đầu tiên sau 4 giây
+    const initialTimer = setTimeout(() => {
+      setIsVisible(true);
+    }, 4000);
+
+    // Luân chuyển đều đặn mỗi 14 giây
+    const interval = setInterval(() => {
+      setIsVisible(false);
+      setTimeout(() => {
+        setCurrentIndex((prev) => (prev + 1) % activities.length);
+        setIsVisible(true);
+      }, 1000);
+    }, 14000);
+
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(interval);
+    };
+  }, [dismissed, activities.length]);
+
+  if (dismissed || !isVisible) return null;
+
+  const item = activities[currentIndex];
+
+  return (
+    <aside className="live-activity-toast" aria-live="polite">
+      <div className="live-activity-toast__icon">{item.icon}</div>
+      <div className="live-activity-toast__content">
+        <strong className="live-activity-toast__title">{item.title}</strong>
+        <span className="live-activity-toast__desc">{item.desc}</span>
+        <span className="live-activity-toast__time">⏱️ {item.time}</span>
+      </div>
+      <button
+        type="button"
+        className="live-activity-toast__close"
+        onClick={() => setDismissed(true)}
+        aria-label="Đóng thông báo"
+      >
+        ×
+      </button>
+    </aside>
+  );
+}
+
 function Hero() {
   const config = useConfig()
   const section = getSection(config, "hero")
@@ -409,6 +589,13 @@ function Hero() {
   return (
     <main className="hero" id="top" style={{ position: "relative" }}>
       <div id="about" style={{ position: "absolute", top: 0, left: 0, width: "1px", height: "1px", pointerEvents: "none", opacity: 0 }} />
+      {/* Quả cầu ánh sáng nền mềm mại (Ambient Floating Blobs) */}
+      <div className="hero__ambient-container" aria-hidden="true">
+        <div className="hero__ambient-blob hero__ambient-blob--purple" />
+        <div className="hero__ambient-blob hero__ambient-blob--amber" />
+        <div className="hero__ambient-blob hero__ambient-blob--mint" />
+      </div>
+
       <div className="container hero__grid">
         <div className="hero__content reveal">
           <span className="eyebrow">{eyebrow}</span>
@@ -448,23 +635,44 @@ function Hero() {
             <span>Đồng hành cùng gia đình</span>
           </div>
         </div>
-        <figure
-          className="hero__visual reveal reveal-delay-2"
-          onClick={() => {
-            const gallerySection = document.querySelector("#gallery");
-            if (gallerySection) gallerySection.scrollIntoView({ behavior: "smooth" });
-          }}
-          style={{ cursor: "pointer" }}
-          title="Bấm để xem hình ảnh không gian phòng học & cơ sở vật chất"
-        >
-          <img
-            src={image}
-            alt="Không gian học tập ấm áp với vật liệu gỗ tự nhiên"
-          />
-          <figcaption>
-            🔍 Bấm để khám phá cơ sở vật chất phòng học của trung tâm
-          </figcaption>
-        </figure>
+
+        <div className="hero__visual-wrapper reveal reveal-delay-2">
+          {/* Glassmorphism Badge trên ảnh */}
+          <div className="hero__badge hero__badge--top">
+            <span className="hero__badge-icon">🌱</span>
+            <div className="hero__badge-text">
+              <strong>Can thiệp 1:1 cá nhân hóa</strong>
+              <small>Giáo án IEP theo thế mạnh riêng</small>
+            </div>
+          </div>
+
+          <figure
+            className="hero__visual"
+            onClick={() => {
+              const gallerySection = document.querySelector("#gallery");
+              if (gallerySection) gallerySection.scrollIntoView({ behavior: "smooth" });
+            }}
+            style={{ cursor: "pointer", margin: 0 }}
+            title="Bấm để xem hình ảnh không gian phòng học & cơ sở vật chất"
+          >
+            <img
+              src={image}
+              alt="Không gian học tập ấm áp với vật liệu gỗ tự nhiên"
+            />
+            <figcaption>
+              🔍 Bấm để khám phá cơ sở vật chất phòng học của trung tâm
+            </figcaption>
+          </figure>
+
+          {/* Glassmorphism Badge dưới ảnh */}
+          <div className="hero__badge hero__badge--bottom">
+            <span className="hero__badge-icon">⭐</span>
+            <div className="hero__badge-text">
+              <strong>10+ Năm đồng hành cùng trẻ</strong>
+              <small>Trung tâm Cô Hương • Hưng Yên</small>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   )
@@ -1790,6 +1998,7 @@ export default function App() {
       <ScrollProgressBar progress={scrollProgress} />
       <Header scrolled={scrolled} activeSection={activeSection} onNavigate={navigateToSection} hideTeam={hideTeam} />
       <Hero />
+      <StatsTicker />
       <Mission />
       <Areas />
       <DevelopmentalScreener />
@@ -1827,6 +2036,7 @@ export default function App() {
           position={config.floatingPosition || "right"}
         />
       )}
+      <LiveActivityToast />
     </LandingConfigContext.Provider>
   )
 }
