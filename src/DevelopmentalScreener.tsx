@@ -222,11 +222,39 @@ const AGE_GROUPS_DATA: AgeGroupScreener[] = [
   },
 ]
 
+const STORAGE_SCREENER_SESSION_KEY = "aurora_screener_session_v1"
+
+export interface StoredScreenerSession {
+  selectedAgeId: string
+  answers: Record<string, "yes" | "no">
+  concernPoints: number
+  riskLevel: "low" | "medium" | "high"
+  completedAt: string
+}
+
+function getSavedScreenerSession(): StoredScreenerSession | null {
+  if (typeof window === "undefined") return null
+  try {
+    const raw =
+      window.sessionStorage?.getItem(STORAGE_SCREENER_SESSION_KEY) ||
+      window.localStorage?.getItem(STORAGE_SCREENER_SESSION_KEY)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (parsed && parsed.selectedAgeId && parsed.answers && typeof parsed.answers === "object") {
+        return parsed
+      }
+    }
+  } catch {}
+  return null
+}
+
 export function DevelopmentalScreener() {
-  const [selectedAgeId, setSelectedAgeId] = useState("18-24")
-  const [answers, setAnswers] = useState<Record<string, "yes" | "no">>({})
+  const initialSession = getSavedScreenerSession()
+  const [selectedAgeId, setSelectedAgeId] = useState(initialSession?.selectedAgeId || "18-24")
+  const [answers, setAnswers] = useState<Record<string, "yes" | "no">>(initialSession?.answers || {})
   const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [showResult, setShowResult] = useState(false)
+  const [showResult, setShowResult] = useState(!!initialSession)
+  const [sessionSavedNotice, setSessionSavedNotice] = useState(!!initialSession)
 
   const currentAgeGroup = AGE_GROUPS_DATA.find((g) => g.id === selectedAgeId) || AGE_GROUPS_DATA[1]
 
@@ -253,12 +281,44 @@ export function DevelopmentalScreener() {
     setTimeout(() => {
       setIsAnalyzing(false)
       setShowResult(true)
-    }, 700)
+      setSessionSavedNotice(true)
+
+      // Lưu kết quả vào sessionStorage và localStorage để tránh người dùng phải test lại nhiều lần
+      try {
+        const payload: StoredScreenerSession = {
+          selectedAgeId,
+          answers,
+          concernPoints,
+          riskLevel,
+          completedAt: new Date().toISOString(),
+        }
+        window.sessionStorage?.setItem(STORAGE_SCREENER_SESSION_KEY, JSON.stringify(payload))
+        window.localStorage?.setItem(STORAGE_SCREENER_SESSION_KEY, JSON.stringify(payload))
+      } catch {}
+
+      // Tự động cuộn êm đến bảng kết quả
+      setTimeout(() => {
+        const resultCard = document.getElementById("screener-result-card")
+        if (resultCard) {
+          const lenis = (window as any).__lenis
+          if (lenis) {
+            lenis.scrollTo(resultCard, { offset: -80, duration: 0.9 })
+          } else {
+            resultCard.scrollIntoView({ behavior: "smooth", block: "start" })
+          }
+        }
+      }, 60)
+    }, 600)
   }
 
   const handleReset = () => {
+    try {
+      window.sessionStorage?.removeItem(STORAGE_SCREENER_SESSION_KEY)
+      window.localStorage?.removeItem(STORAGE_SCREENER_SESSION_KEY)
+    } catch {}
     setAnswers({})
     setShowResult(false)
+    setSessionSavedNotice(false)
   }
 
   // Calculate concern score
@@ -479,7 +539,62 @@ export function DevelopmentalScreener() {
 
           {/* STEP 3: RESULT REPORT */}
           {showResult && (
-            <div className="screener-result reveal" style={{ marginTop: 8 }}>
+            <div
+              className="screener-result"
+              id="screener-result-card"
+              style={{
+                marginTop: 8,
+                opacity: 1,
+                display: "block",
+                transition: "opacity 0.3s ease",
+              }}
+            >
+              {/* Session Saved Notification Banner */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  background: "#f0fdf4",
+                  border: "1.5px solid #86efac",
+                  borderRadius: 14,
+                  padding: "12px 18px",
+                  marginBottom: 20,
+                  gap: 12,
+                  flexWrap: "wrap",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 22 }}>✅</span>
+                  <div>
+                    <strong style={{ fontSize: 14, color: "#166534", display: "block" }}>
+                      Đã đánh giá thành công & Lưu vào phiên làm việc (Session Saved)
+                    </strong>
+                    <span style={{ fontSize: 12.5, color: "#15803d" }}>
+                      Hệ thống đã lưu lại kết quả đánh giá cho con. Khi tải lại trang bạn không phải làm lại bài test.
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  style={{
+                    padding: "7px 14px",
+                    fontSize: 12.5,
+                    fontWeight: 700,
+                    borderRadius: 8,
+                    border: "1px solid #16a34a",
+                    background: "#ffffff",
+                    color: "#166534",
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 5,
+                  }}
+                >
+                  <span>🔄 Làm lại trắc nghiệm</span>
+                </button>
+              </div>
               {/* Risk Level Banner */}
               <div
                 style={{
