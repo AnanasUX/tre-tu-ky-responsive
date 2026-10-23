@@ -824,7 +824,7 @@ function Areas() {
                   screenerEl.scrollIntoView({ behavior: "smooth" });
                 }
               }}
-              style={{ background: "linear-gradient(135deg, #50008b 0%, #7c3aed 100%)", border: "none" }}
+              style={{ background: "linear-gradient(135deg, #2563FF 0%, #8046FD 100%)", border: "none" }}
             >
               🧪 Làm trắc nghiệm sàng lọc 60s
             </a>
@@ -1395,7 +1395,7 @@ function Contact() {
   }
 
   const phone = config.phone || "096 290 3942"
-  const address = config.address || "TDP Duyên Phúc, xã Hưng Hà, Tỉnh Thái Bình"
+  const address = config.address || "TDP Duyên Phúc, xã Hưng Hà, Tỉnh Hưng Yên"
 
   return (
     <section className="contact" id="contact">

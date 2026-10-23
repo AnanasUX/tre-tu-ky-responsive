@@ -360,8 +360,8 @@ export function DevelopmentalScreener() {
             background: "#ffffff",
             borderRadius: 24,
             padding: "36px 32px",
-            boxShadow: "0 12px 32px -4px rgba(80, 0, 139, 0.08), 0 4px 12px rgba(80, 0, 139, 0.04)",
-            border: "1px solid rgba(80, 0, 139, 0.1)",
+            boxShadow: "0 12px 32px -4px rgba(37, 99, 255, 0.08), 0 4px 12px rgba(37, 99, 255, 0.04)",
+            border: "1px solid rgba(107, 110, 148, 0.15)",
             maxWidth: 880,
             margin: "0 auto",
           }}
@@ -388,9 +388,9 @@ export function DevelopmentalScreener() {
                     style={{
                       padding: "12px 14px",
                       borderRadius: 14,
-                      border: isSelected ? "2px solid var(--primary, #50008b)" : "1.5px solid #e2e8f0",
-                      background: isSelected ? "rgba(80, 0, 139, 0.05)" : "#f8fafc",
-                      color: isSelected ? "var(--primary, #50008b)" : "#475569",
+                      border: isSelected ? "2px solid var(--primary, #2563FF)" : "1.5px solid #e2e8f0",
+                      background: isSelected ? "rgba(37, 99, 255, 0.08)" : "#f8fafc",
+                      color: isSelected ? "var(--primary, #2563FF)" : "#475569",
                       fontWeight: isSelected ? 700 : 600,
                       fontSize: 14,
                       cursor: "pointer",
@@ -426,7 +426,7 @@ export function DevelopmentalScreener() {
                 <label style={{ fontSize: 14, fontWeight: 700, color: "#1e1b4b", margin: 0 }}>
                   BƯỚC 2: CHẠM CÂU TRẢ LỜI QUAN SÁT THỰC TẾ CỦA CON
                 </label>
-                <span style={{ fontSize: 13, fontWeight: 600, color: "#50008b" }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#2563FF" }}>
                   Đã trả lời: {answeredCount} / {totalQuestions}
                 </span>
               </div>
@@ -437,7 +437,7 @@ export function DevelopmentalScreener() {
                   style={{
                     height: "100%",
                     width: `${(answeredCount / totalQuestions) * 100}%`,
-                    background: "var(--primary, #50008b)",
+                    background: "var(--primary, #2563FF)",
                     transition: "width 0.3s ease",
                   }}
                 />
@@ -454,13 +454,13 @@ export function DevelopmentalScreener() {
                         padding: "18px 20px",
                         borderRadius: 16,
                         background: currentAnswer ? "#fcfaff" : "#f8fafc",
-                        border: currentAnswer ? "1px solid rgba(80, 0, 139, 0.2)" : "1px solid #e2e8f0",
+                        border: currentAnswer ? "1px solid rgba(37, 99, 255, 0.22)" : "1px solid #e2e8f0",
                         transition: "all 0.2s ease",
                       }}
                     >
                       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
                         <div style={{ flex: "1 1 340px" }}>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: "var(--primary, #50008b)", display: "block", marginBottom: 4 }}>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: "var(--primary, #2563FF)", display: "block", marginBottom: 4 }}>
                             CÂU HỎI {idx + 1}
                           </span>
                           <strong style={{ fontSize: 15, color: "#1e293b", lineHeight: 1.45, display: "block" }}>
@@ -528,7 +528,7 @@ export function DevelopmentalScreener() {
                     borderRadius: 12,
                     opacity: !isComplete ? 0.6 : 1,
                     cursor: !isComplete ? "not-allowed" : "pointer",
-                    boxShadow: isComplete ? "0 8px 20px rgba(80, 0, 139, 0.25)" : "none",
+                    boxShadow: isComplete ? "0 8px 20px rgba(37, 99, 255, 0.3)" : "none",
                   }}
                 >
                   {isAnalyzing ? "Đang phân tích kết quả..." : isComplete ? "⚡ Xem Kết Quả Phân Tích & Lời Khuyên Từ Cô Hương" : `Vui lòng trả lời đủ 5 câu hỏi (${answeredCount}/5)`}
@@ -676,7 +676,7 @@ export function DevelopmentalScreener() {
                         border: "1px solid #e2e8f0",
                       }}
                     >
-                      <strong style={{ display: "block", fontSize: 14, color: "var(--primary, #50008b)", marginBottom: 6 }}>
+                      <strong style={{ display: "block", fontSize: 14, color: "var(--primary, #2563FF)", marginBottom: 6 }}>
                         {i + 1}. {ex.title}
                       </strong>
                       <p style={{ margin: 0, fontSize: 13, color: "#475569", lineHeight: 1.55 }}>
@@ -692,8 +692,8 @@ export function DevelopmentalScreener() {
                 style={{
                   padding: "20px 24px",
                   borderRadius: 16,
-                  background: "rgba(80, 0, 139, 0.04)",
-                  border: "1px solid rgba(80, 0, 139, 0.12)",
+                  background: "rgba(37, 99, 255, 0.04)",
+                  border: "1px solid rgba(37, 99, 255, 0.16)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",

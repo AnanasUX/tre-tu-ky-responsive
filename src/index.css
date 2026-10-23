@@ -6,26 +6,32 @@ button, a, input, select, textarea { touch-action: manipulation; }
 
 :root {
   --font-sans: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --ink: #25213b;
-  --secondary: #565268;
-  --muted: #686279;
-  --primary: #50008b;
-  --primary-dark: #410070;
-  --primary-soft: #f3ebff;
-  --line: #e3dcee;
-  --surface: #ffffff;
-  --subtle: #fcfaff;
-  --lavender: #faf7ff;
-  --blue: #0847ab;
-  --green: #2d9935;
-  --yellow: #ffd300;
-  --red: #ec0024;
-  --info: #175d82;
-  --footer: #25213b;
+  --ink: #0C0F12;
+  --secondary: #4E5B6D;
+  --muted: #7C8792;
+  --primary: #2563FF;
+  --primary-dark: #1D4ED8;
+  --primary-soft: #EEF4FF;
+  --primary-light: #B8CCFF;
+  --accent-purple: #8046FD;
+  --accent-violet: #5715D1;
+  --dark-indigo: #14062D;
+  --line: #E4E4E4;
+  --surface: #FFFFFF;
+  --subtle: #F9FAFB;
+  --lavender: #F4F6FF;
+  --blue: #2563FF;
+  --green: #17CF97;
+  --yellow: #FFB800;
+  --orange: #FF630B;
+  --red: #EF4444;
+  --info: #0099FF;
+  --footer: #14062D;
   --radius-sm: 12px;
-  --radius-md: 16px;
-  --radius-lg: 20px;
-  --shadow-card: 0 4px 16px rgba(36, 48, 71, 0.04);
+  --radius-md: 20px;
+  --radius-lg: 24px;
+  --shadow-card: 0 20px 40px -15px rgba(107, 110, 148, 0.1), 0 0 0 1px rgba(107, 110, 148, 0.05);
+  --shadow-elevated: 0 30px 60px -15px rgba(12, 15, 18, 0.12), 0 0 0 1px rgba(107, 110, 148, 0.1);
   --container: 1280px;
 
   /* Typography Scale Tokens (Be Vietnam Pro) */
@@ -134,13 +140,30 @@ p {
 }
 
 .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: rgba(37, 99, 255, 0.07);
+  border: 1px solid rgba(37, 99, 255, 0.18);
   color: var(--primary);
-  display: block;
-  font-size: var(--font-caption-size);
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   line-height: var(--font-caption-line);
   margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(37, 99, 255, 0.06);
+}
+
+.eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 8px rgba(37, 99, 255, 0.7);
 }
 
 .button {
@@ -207,7 +230,7 @@ p {
   background: var(--primary);
   border-color: var(--primary);
   color: var(--surface) !important;
-  box-shadow: 0 4px 14px rgba(80, 0, 139, 0.22), 0 2px 6px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 14px rgba(37, 99, 255, 0.28), 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
 .button--primary::before {
@@ -218,14 +241,14 @@ p {
 .button--primary:focus-visible {
   color: #ffffff !important;
   border-color: var(--primary-dark);
-  box-shadow: 0 6px 20px rgba(65, 0, 112, 0.35), 0 3px 8px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 24px rgba(37, 99, 255, 0.42), 0 3px 8px rgba(0, 0, 0, 0.1);
 }
 
 .button--secondary {
   background: var(--surface);
-  border-color: var(--primary);
-  color: var(--primary) !important;
-  box-shadow: 0 2px 10px rgba(80, 0, 139, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+  border-color: var(--line);
+  color: var(--ink) !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 .button--secondary::before {
@@ -234,9 +257,9 @@ p {
 
 .button--secondary:hover,
 .button--secondary:focus-visible {
-  color: #ffffff !important;
+  color: var(--primary) !important;
   border-color: var(--primary);
-  box-shadow: 0 6px 20px rgba(80, 0, 139, 0.3), 0 3px 8px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 6px 20px rgba(37, 99, 255, 0.18), 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
 .button--secondary-outline {
@@ -254,7 +277,7 @@ p {
 .button--secondary-outline:focus-visible {
   color: #ffffff !important;
   border-color: var(--primary);
-  box-shadow: 0 6px 18px rgba(80, 0, 139, 0.25);
+  box-shadow: 0 6px 18px rgba(37, 99, 255, 0.25);
 }
 
 .button--zalo-highlight,
@@ -395,11 +418,11 @@ section[id],
 }
 
 .header--scrolled {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(80, 0, 139, 0.12);
-  box-shadow: 0 4px 20px rgba(80, 0, 139, 0.08);
+  border-bottom: 1px solid rgba(37, 99, 255, 0.12);
+  box-shadow: 0 4px 20px rgba(37, 99, 255, 0.06);
 }
 
 .header__bar {
@@ -630,14 +653,19 @@ section[id],
 }
 
 .section-title__note {
-  background: var(--lavender);
+  background: rgba(37, 99, 255, 0.07);
+  border: 1px solid rgba(37, 99, 255, 0.18);
   color: var(--primary);
-  display: block;
-  font-size: var(--font-caption-size);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
   font-weight: 600;
-  line-height: var(--font-caption-line);
+  line-height: 1.4;
   margin-top: 16px;
-  padding: 6px 12px;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(37, 99, 255, 0.05);
 }
 
 .mission-grid,
@@ -1589,10 +1617,10 @@ section, .hero, .contact {
 
 .scroll-progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #50008b 0%, #9026c4 45%, #2d9935 100%);
+  background: linear-gradient(90deg, #2563FF 0%, #8046FD 45%, #17CF97 100%);
   width: 0%;
   transition: width 0.08s ease-out;
-  box-shadow: 0 0 10px rgba(144, 38, 196, 0.5);
+  box-shadow: 0 0 10px rgba(37, 99, 255, 0.5);
 }
 
 /* Header Glassmorphism khi cuộn trang */
@@ -1644,10 +1672,10 @@ section, .hero, .contact {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #50008b, #781ca8);
+  background: linear-gradient(135deg, #2563FF, #8046FD);
   color: #ffffff;
   border: 0;
-  box-shadow: 0 6px 20px rgba(80, 0, 139, 0.3);
+  box-shadow: 0 6px 20px rgba(37, 99, 255, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1659,9 +1687,9 @@ section, .hero, .contact {
 }
 
 .back-to-top:hover {
-  background: linear-gradient(135deg, #410070, #671492);
+  background: linear-gradient(135deg, #1D4ED8, #6d28d9);
   transform: translateY(-3px) scale(1.06);
-  box-shadow: 0 10px 25px rgba(80, 0, 139, 0.42);
+  box-shadow: 0 10px 25px rgba(37, 99, 255, 0.45);
 }
 
 .back-to-top.is-visible {
@@ -1687,8 +1715,8 @@ section, .hero, .contact {
 .profile-card:hover,
 .resource-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 14px 30px rgba(80, 0, 139, 0.09);
-  border-color: #d1bde8;
+  box-shadow: 0 20px 40px -12px rgba(37, 99, 255, 0.16), 0 0 0 1px rgba(37, 99, 255, 0.15);
+  border-color: rgba(37, 99, 255, 0.28);
 }
 
 /* FAQ item hover & active smooth transitions */
@@ -1697,7 +1725,7 @@ section, .hero, .contact {
 }
 
 .faq-item:hover {
-  border-color: #d1bde8;
+  border-color: rgba(37, 99, 255, 0.3);
 }
 
 /* Danh sách thông tin liên hệ trực tiếp */
@@ -1797,7 +1825,7 @@ a.contact__info-item:hover {
 }
 
 .floating-contact__btn--chat {
-  background: linear-gradient(135deg, #8b5cf6, #50008b);
+  background: linear-gradient(135deg, #2563FF, #8046FD);
   border: none;
   cursor: pointer;
   display: flex;
@@ -1824,7 +1852,7 @@ a.contact__info-item:hover {
 }
 
 .floating-contact__btn--chat:hover {
-  background: linear-gradient(135deg, #7c3aed, #40006f);
+  background: linear-gradient(135deg, #1D4ED8, #6d28d9);
 }
 
 .floating-contact__btn:hover {
@@ -2725,7 +2753,7 @@ textarea {
   max-height: calc(100vh - 40px);
   background: #ffffff;
   border-radius: 20px;
-  box-shadow: 0 20px 40px -10px rgba(80, 0, 139, 0.28), 0 0 0 1px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 20px 40px -10px rgba(37, 99, 255, 0.25), 0 0 0 1px rgba(107, 110, 148, 0.12);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -2752,7 +2780,7 @@ textarea {
 
 /* HEADER */
 .live-chat-header {
-  background: linear-gradient(135deg, #50008b, #7c3aed);
+  background: linear-gradient(135deg, #2563FF, #8046FD);
   color: #ffffff;
   padding: 16px 18px;
   display: flex;
@@ -2874,17 +2902,17 @@ textarea {
 
 .live-chat-welcome-banner {
   text-align: center;
-  background: #faf5ff;
-  border: 1px solid #ebdcfc;
+  background: #EEF4FF;
+  border: 1px solid rgba(37, 99, 255, 0.2);
   border-radius: 12px;
   padding: 12px 14px;
-  box-shadow: 0 1px 3px rgba(80, 0, 139, 0.04);
+  box-shadow: 0 2px 8px rgba(37, 99, 255, 0.05);
 }
 
 .live-chat-welcome-title {
   font-size: 13.5px;
   font-weight: 600;
-  color: #4a044e;
+  color: #1D4ED8;
   line-height: 1.45;
   margin: 0;
   letter-spacing: -0.1px;
@@ -2943,7 +2971,7 @@ textarea {
 }
 
 .live-chat-start-btn {
-  background: linear-gradient(135deg, #50008b, #7c3aed);
+  background: linear-gradient(135deg, #2563FF, #8046FD);
   color: #ffffff;
   border: none;
   padding: 13px 18px;
@@ -2956,13 +2984,13 @@ textarea {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 14px rgba(80, 0, 139, 0.25);
+  box-shadow: 0 4px 14px rgba(37, 99, 255, 0.28);
   margin-top: 4px;
 }
 
 .live-chat-start-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(80, 0, 139, 0.35);
+  box-shadow: 0 6px 18px rgba(37, 99, 255, 0.4);
 }
 
 .live-chat-start-btn:disabled {
@@ -3079,10 +3107,10 @@ textarea {
 }
 
 .chat-bubble-box--customer {
-  background: linear-gradient(135deg, #50008b, #6b21a8);
+  background: linear-gradient(135deg, #2563FF, #1D4ED8);
   color: #ffffff;
   border-bottom-right-radius: 4px;
-  box-shadow: 0 2px 8px rgba(80, 0, 139, 0.18);
+  box-shadow: 0 2px 8px rgba(37, 99, 255, 0.2);
 }
 
 .chat-bubble-box--admin {
@@ -3188,7 +3216,7 @@ textarea {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #50008b;
+  background: #2563FF;
   border: none;
   color: #ffffff;
   display: flex;
@@ -3225,7 +3253,7 @@ textarea {
 }
 
 .live-chat-window-footer a {
-  color: #50008b;
+  color: #2563FF;
   font-weight: 600;
   text-decoration: underline;
 }
@@ -3309,11 +3337,11 @@ select::placeholder {
 /* ========================================================================= */
 .areas-mini-cta {
   margin-top: 44px;
-  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 55%, #ffffff 100%);
-  border: 2px solid #d8b4fe;
+  background: linear-gradient(135deg, #EEF4FF 0%, #F4F6FF 55%, #ffffff 100%);
+  border: 1.5px solid rgba(37, 99, 255, 0.25);
   border-radius: 20px;
   padding: 28px 32px;
-  box-shadow: 0 10px 28px rgba(80, 0, 139, 0.07);
+  box-shadow: 0 16px 36px -8px rgba(37, 99, 255, 0.12), 0 0 0 1px rgba(37, 99, 255, 0.06);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -3341,13 +3369,13 @@ select::placeholder {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #f3e8ff;
-  color: #6b21a8;
+  background: rgba(37, 99, 255, 0.08);
+  color: var(--primary);
   font-size: 12px;
   font-weight: 700;
-  padding: 4px 12px;
-  border-radius: 20px;
-  border: 1px solid #d8b4fe;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(37, 99, 255, 0.22);
   margin-bottom: 8px;
 }
 
@@ -3593,7 +3621,7 @@ textarea {
 .hero__ambient-blob--purple {
   width: 420px;
   height: 420px;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.22) 0%, rgba(80, 0, 139, 0.08) 70%, transparent 100%);
+  background: radial-gradient(circle, rgba(37, 99, 255, 0.2) 0%, rgba(128, 70, 253, 0.1) 70%, transparent 100%);
   top: -100px;
   right: 5%;
   animation: floatBlob1 18s ease-in-out infinite alternate;
@@ -3602,7 +3630,7 @@ textarea {
 .hero__ambient-blob--amber {
   width: 360px;
   height: 360px;
-  background: radial-gradient(circle, rgba(251, 191, 36, 0.24) 0%, rgba(245, 158, 11, 0.08) 70%, transparent 100%);
+  background: radial-gradient(circle, rgba(255, 99, 11, 0.14) 0%, rgba(255, 121, 23, 0.04) 70%, transparent 100%);
   bottom: 10%;
   left: 8%;
   animation: floatBlob2 22s ease-in-out infinite alternate;
@@ -3611,7 +3639,7 @@ textarea {
 .hero__ambient-blob--mint {
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(52, 211, 153, 0.18) 0%, rgba(16, 185, 129, 0.05) 70%, transparent 100%);
+  background: radial-gradient(circle, rgba(23, 207, 151, 0.16) 0%, rgba(37, 202, 172, 0.04) 70%, transparent 100%);
   top: 40%;
   right: 40%;
   animation: floatBlob3 15s ease-in-out infinite alternate;
@@ -3653,7 +3681,7 @@ textarea {
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 16px 36px -6px rgba(36, 48, 71, 0.16), 0 4px 12px rgba(80, 0, 139, 0.08);
+  box-shadow: 0 16px 36px -6px rgba(12, 15, 18, 0.1), 0 4px 12px rgba(37, 99, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.85);
   pointer-events: auto;
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
@@ -3661,7 +3689,7 @@ textarea {
 
 .hero__badge:hover {
   transform: translateY(-4px) scale(1.03);
-  box-shadow: 0 20px 40px -4px rgba(80, 0, 139, 0.22);
+  box-shadow: 0 20px 40px -4px rgba(37, 99, 255, 0.2);
 }
 
 .hero__badge--top {
@@ -3695,7 +3723,7 @@ textarea {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: linear-gradient(135deg, rgba(80, 0, 139, 0.08) 0%, rgba(168, 85, 247, 0.12) 100%);
+  background: linear-gradient(135deg, rgba(37, 99, 255, 0.08) 0%, rgba(128, 70, 253, 0.1) 100%);
   flex-shrink: 0;
 }
 
@@ -3774,8 +3802,8 @@ textarea {
   background: #ffffff;
   border-radius: 24px;
   padding: 28px 24px;
-  box-shadow: 0 16px 40px -8px rgba(80, 0, 139, 0.08), 0 4px 16px rgba(0, 0, 0, 0.02);
-  border: 1px solid rgba(80, 0, 139, 0.09);
+  box-shadow: 0 20px 40px -10px rgba(107, 110, 148, 0.12), 0 4px 16px rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(107, 110, 148, 0.14);
   position: relative;
   overflow: hidden;
 }
@@ -3802,15 +3830,15 @@ textarea {
   padding: 12px 14px;
   border-radius: 16px;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  background: #faf8fd;
-  border: 1px solid rgba(80, 0, 139, 0.05);
+  background: #F9FAFB;
+  border: 1px solid rgba(107, 110, 148, 0.1);
 }
 
 .stats-card:hover {
   transform: translateY(-4px);
   background: #ffffff;
-  border-color: rgba(80, 0, 139, 0.2);
-  box-shadow: 0 10px 24px -4px rgba(80, 0, 139, 0.12);
+  border-color: rgba(37, 99, 255, 0.3);
+  box-shadow: 0 12px 28px -4px rgba(37, 99, 255, 0.16);
 }
 
 .stats-card__icon {
@@ -3821,7 +3849,7 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(80, 0, 139, 0.1) 0%, rgba(168, 85, 247, 0.15) 100%);
+  background: linear-gradient(135deg, rgba(37, 99, 255, 0.1) 0%, rgba(128, 70, 253, 0.12) 100%);
   flex-shrink: 0;
 }
 
@@ -3829,7 +3857,7 @@ textarea {
   font-size: 32px;
   font-weight: 800;
   line-height: 1.1;
-  background: linear-gradient(135deg, #50008b 0%, #7e22ce 100%);
+  background: linear-gradient(135deg, #2563FF 0%, #8046FD 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   display: block;
@@ -3865,7 +3893,7 @@ textarea {
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #50008b, #a855f7, #3b82f6);
+  background: linear-gradient(90deg, #2563FF, #8046FD, #0099FF);
   opacity: 0;
   transform: scaleX(0);
   transform-origin: left;
@@ -3874,8 +3902,8 @@ textarea {
 
 .mission-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 20px 36px -8px rgba(80, 0, 139, 0.14), 0 6px 16px rgba(0, 0, 0, 0.04);
-  border-color: rgba(80, 0, 139, 0.25) !important;
+  box-shadow: 0 20px 36px -8px rgba(37, 99, 255, 0.15), 0 6px 16px rgba(0, 0, 0, 0.04);
+  border-color: rgba(37, 99, 255, 0.28) !important;
 }
 
 .mission-card:hover::before {
@@ -3901,8 +3929,8 @@ textarea {
 
 .area-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 18px 32px -6px rgba(80, 0, 139, 0.12), 0 4px 12px rgba(0, 0, 0, 0.03);
-  border-color: rgba(80, 0, 139, 0.22) !important;
+  box-shadow: 0 18px 32px -6px rgba(37, 99, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.03);
+  border-color: rgba(37, 99, 255, 0.25) !important;
 }
 
 /* 7. Thông báo hoạt động thời gian thực (Live Activity Toast) */
@@ -3914,10 +3942,9 @@ textarea {
   background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(80, 0, 139, 0.14);
+  border: 1px solid rgba(37, 99, 255, 0.16);
   border-radius: 18px;
-  padding: 12px 16px;
-  box-shadow: 0 16px 36px -4px rgba(36, 48, 71, 0.14), 0 4px 14px rgba(80, 0, 139, 0.08);
+  box-shadow: 0 16px 36px -4px rgba(12, 15, 18, 0.12), 0 4px 14px rgba(37, 99, 255, 0.08);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -3942,7 +3969,7 @@ textarea {
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  background: linear-gradient(135deg, rgba(80, 0, 139, 0.08) 0%, rgba(168, 85, 247, 0.14) 100%);
+  background: linear-gradient(135deg, rgba(37, 99, 255, 0.08) 0%, rgba(128, 70, 253, 0.12) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3979,7 +4006,7 @@ textarea {
 .live-activity-toast__time {
   font-size: 10.5px;
   font-weight: 600;
-  color: #7e22ce;
+  color: #2563FF;
   display: inline-block;
   margin-top: 3px;
 }
@@ -4031,7 +4058,7 @@ textarea {
 
 .hero__visual-wrapper:hover .hero__visual img {
   transform: scale(1.025) translateY(-4px);
-  box-shadow: 0 24px 50px -10px rgba(80, 0, 139, 0.22);
+  box-shadow: 0 24px 50px -10px rgba(37, 99, 255, 0.2);
 }
 
 /* 10. Chấm tín hiệu trực tuyến nhấp nháy cho nút tư vấn (Live Beacon Dot) */
@@ -4068,7 +4095,7 @@ textarea {
 
 .process-step:hover {
   transform: translateY(-6px);
-  box-shadow: 0 16px 32px -8px rgba(80, 0, 139, 0.12);
+  box-shadow: 0 16px 32px -8px rgba(37, 99, 255, 0.15);
 }
 
 /* 12. Hiệu ứng Gradient Shimmer cho Thẻ trắc nghiệm Screener */
@@ -4084,7 +4111,7 @@ textarea {
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #50008b, #a855f7, #0284c7, #50008b);
+  background: linear-gradient(90deg, #2563FF, #8046FD, #0099FF, #2563FF);
   background-size: 300% 100%;
   animation: gradientFlow 8s linear infinite;
 }
