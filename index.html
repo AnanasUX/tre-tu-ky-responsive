@@ -80,7 +80,7 @@
           history.scrollRestoration = 'manual';
         }
         var h = window.location.hash.toLowerCase();
-        if (!h || h === '#about' || h === '#top') {
+        if (!h || h.indexOf('#about') === 0 || h.indexOf('#top') === 0) {
           window.scrollTo(0, 0);
           if (document.documentElement) document.documentElement.scrollTop = 0;
           if (document.body) document.body.scrollTop = 0;

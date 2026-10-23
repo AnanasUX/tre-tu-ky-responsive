@@ -283,7 +283,7 @@ function Header({
     const lenis = (window as any).__lenis
 
     // Mục "Giới thiệu" (#about) và Trang chủ (#top) luôn cuộn êm lên đầu trang
-    if (hash === "#about" || hash === "#top") {
+    if (hash === "#about" || hash === "#top" || hash.startsWith("#about") || hash.startsWith("#top")) {
       if (lenis) {
         lenis.scrollTo(0, { duration: 1.1, immediate: false })
       } else {
@@ -1624,7 +1624,7 @@ function useScrollEffects(dep: any, hideTeam = false) {
     // Xử lý vị trí ban đầu khi người dùng vào trang / reload:
     // Nếu vào URL có #about hoặc #top (hoặc không có hash), hệ thống phải chuyển đến đầu trang
     const currentHash = window.location.hash.toLowerCase()
-    const isAboutOrTop = !currentHash || currentHash === "#about" || currentHash === "#top"
+    const isAboutOrTop = !currentHash || currentHash.startsWith("#about") || currentHash.startsWith("#top")
 
     if (isAboutOrTop) {
       isNavigatingRef.current = true
