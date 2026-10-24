@@ -25,8 +25,9 @@ import { LiveChatWidget } from "./LiveChatWidget"
 import { DevelopmentalScreener } from "./DevelopmentalScreener"
 import { sendLeadToGoogleSheets } from "./services/googleSheetsService"
 import { InterventionComparison } from "./InterventionComparison"
-import { ArticleModal, type ArticleData } from "./ArticleModal"
-import { SAMPLE_ARTICLES } from "./articlesData"
+import { ArticleModal } from "./ArticleModal"
+import { ArticleDetailPage } from "./ArticleDetailPage"
+import { type ArticleData, SAMPLE_ARTICLES, loadStoredArticles } from "./articlesData"
 import { A11yToolbar } from "./A11yToolbar"
 
 const LandingConfigContext = createContext<LandingPageConfig>(initialLandingPageConfig)
@@ -1229,7 +1230,7 @@ function Space() {
   )
 }
 
-function Resources() {
+function Resources({ onOpenArticleDetail }: { onOpenArticleDetail?: (article: ArticleData) => void }) {
   const config = useConfig()
   const section = getSection(config, "resources")
   if (section && !section.enabled) return null
@@ -1240,14 +1241,35 @@ function Resources() {
     section?.description ??
     "Tổng hợp các bài viết hướng dẫn chuyên sâu từ ThS. Hoàng Thị Hương và ban chuyên môn về âm ngữ, hành vi ABA, điều hòa giác quan và kỹ năng hòa nhập."
 
+  const [articles, setArticles] = useState<ArticleData[]>(loadStoredArticles)
   const [selectedCategory, setSelectedCategory] = useState<string>("Tất cả")
   const [searchQuery, setSearchQuery] = useState<string>("")
   const [readingArticle, setReadingArticle] = useState<ArticleData | null>(null)
 
+  useEffect(() => {
+    const handleSync = () => {
+      setArticles(loadStoredArticles())
+    }
+    window.addEventListener("storage", handleSync)
+    let channel: BroadcastChannel | null = null
+    try {
+      channel = new BroadcastChannel("aurora-cms-sync")
+      channel.onmessage = (e) => {
+        if (e.data?.type === "articles_updated") {
+          setArticles(loadStoredArticles())
+        }
+      }
+    } catch {}
+    return () => {
+      window.removeEventListener("storage", handleSync)
+      channel?.close()
+    }
+  }, [])
+
   const categories = ["Tất cả", "Âm ngữ trị liệu", "Hành vi ABA", "Điều hòa giác quan", "Can thiệp 1:1", "Tiền tiểu học", "Kỹ năng gia đình"]
 
   const filteredArticles = useMemo(() => {
-    return SAMPLE_ARTICLES.filter((art) => {
+    return articles.filter((art) => {
       const matchCat = selectedCategory === "Tất cả" || art.category === selectedCategory
       const matchSearch =
         !searchQuery.trim() ||
@@ -1255,7 +1277,7 @@ function Resources() {
         art.summary.toLowerCase().includes(searchQuery.toLowerCase())
       return matchCat && matchSearch
     })
-  }, [selectedCategory, searchQuery])
+  }, [articles, selectedCategory, searchQuery])
 
   const handleConsultTopic = (topic: string) => {
     const contactSection = document.querySelector("#contact")
@@ -1345,7 +1367,13 @@ function Resources() {
               <article
                 className={`resource-card reveal reveal-delay-${(idx % 3) + 1}`}
                 key={item.id}
-                onClick={() => setReadingArticle(item)}
+                onClick={() => {
+                  if (onOpenArticleDetail) {
+                    onOpenArticleDetail(item)
+                  } else {
+                    setReadingArticle(item)
+                  }
+                }}
                 style={{ cursor: "pointer" }}
               >
                 <div className="card-media">
@@ -1362,7 +1390,11 @@ function Resources() {
                     style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontWeight: 700 }}
                     onClick={(e) => {
                       e.stopPropagation()
-                      setReadingArticle(item)
+                      if (onOpenArticleDetail) {
+                        onOpenArticleDetail(item)
+                      } else {
+                        setReadingArticle(item)
+                      }
                     }}
                   >
                     Đọc toàn bộ bài viết →
@@ -2087,6 +2119,39 @@ export default function App() {
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [hideTeam, setHideTeam] = useState(isZaloCampaignResourcesLanding)
 
+  // Quản lý trạng thái xem Trang chi tiết bài viết (Dedicated Article Detail Page)
+  const [currentArticleDetail, setCurrentArticleDetail] = useState<ArticleData | null>(() => {
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash
+      if (hash.startsWith("#/bai-viet/")) {
+        const artId = hash.replace("#/bai-viet/", "").trim()
+        const all = loadStoredArticles()
+        return all.find((a) => a.id === artId) || null
+      }
+    }
+    return null
+  })
+
+  useEffect(() => {
+    const handleHashCheck = () => {
+      const hash = window.location.hash
+      if (hash.startsWith("#/bai-viet/")) {
+        const artId = hash.replace("#/bai-viet/", "").trim()
+        const all = loadStoredArticles()
+        const found = all.find((a) => a.id === artId)
+        if (found) setCurrentArticleDetail(found)
+      } else if (currentArticleDetail && !hash.startsWith("#/bai-viet/")) {
+        setCurrentArticleDetail(null)
+      }
+    }
+    window.addEventListener("hashchange", handleHashCheck)
+    window.addEventListener("popstate", handleHashCheck)
+    return () => {
+      window.removeEventListener("hashchange", handleHashCheck)
+      window.removeEventListener("popstate", handleHashCheck)
+    }
+  }, [currentArticleDetail])
+
   useEffect(() => {
     const checkUrl = () => setHideTeam(isZaloCampaignResourcesLanding())
     window.addEventListener("popstate", checkUrl)
@@ -2147,6 +2212,67 @@ export default function App() {
     }
   }, [])
 
+  if (currentArticleDetail) {
+    return (
+      <LandingConfigContext.Provider value={config}>
+        <ArticleDetailPage
+          article={currentArticleDetail}
+          onBack={() => {
+            setCurrentArticleDetail(null)
+            try {
+              window.history.pushState(null, "", "#resources")
+            } catch {}
+            setTimeout(() => {
+              const resSection = document.querySelector("#resources")
+              if (resSection) resSection.scrollIntoView({ behavior: "smooth" })
+            }, 100)
+          }}
+          onSelectArticle={(newArt) => {
+            setCurrentArticleDetail(newArt)
+            try {
+              window.history.pushState(null, "", `#/bai-viet/${newArt.id}`)
+            } catch {}
+          }}
+          onConsult={(articleTitle) => {
+            setCurrentArticleDetail(null)
+            try {
+              window.history.pushState(null, "", "#contact")
+            } catch {}
+            setTimeout(() => {
+              const contactSection = document.querySelector("#contact")
+              if (contactSection) contactSection.scrollIntoView({ behavior: "smooth" })
+              const msg = document.querySelector('textarea[name="message"]') as HTMLTextAreaElement
+              if (msg) {
+                msg.value = `Gia đình đã đọc bài viết: "${articleTitle}". Mong được Cô Hương liên hệ tư vấn chuyên sâu.`
+              }
+            }, 300)
+          }}
+        />
+        <A11yToolbar />
+        <FloatingContactBar
+          phone={config.phone || "096 290 3942"}
+          facebook={config.facebook || "https://www.facebook.com/chanh.chua.330"}
+          zalo={config.zalo || config.phone || "096 290 3942"}
+          facebookIcon={config.floatingFacebookIcon}
+          zaloIcon={config.floatingZaloIcon}
+          phoneIcon={config.floatingPhoneIcon}
+          buttonSize={config.floatingButtonSize || 52}
+          enableFacebook={config.enableFloatingFacebook !== false}
+          enableZalo={config.enableFloatingZalo !== false}
+          enablePhone={config.enableFloatingPhone !== false}
+          enablePulse={config.enableFloatingPulse !== false}
+          position={config.floatingPosition || "right"}
+          onOpenChat={() => setIsChatOpen(true)}
+        />
+        <LiveChatWidget
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+          phone={config.phone || "096 290 3942"}
+        />
+      </LandingConfigContext.Provider>
+    )
+  }
+
   return (
     <LandingConfigContext.Provider value={config}>
       <ScrollProgressBar progress={scrollProgress} />
@@ -2160,7 +2286,14 @@ export default function App() {
       <Process />
       {!hideTeam && <Team hideTeam={hideTeam} />}
       <Space />
-      <Resources />
+      <Resources
+        onOpenArticleDetail={(art) => {
+          setCurrentArticleDetail(art)
+          try {
+            window.history.pushState(null, "", `#/bai-viet/${art.id}`)
+          } catch {}
+        }}
+      />
       <Faq />
       <Contact />
       <Footer hideTeam={hideTeam} />
