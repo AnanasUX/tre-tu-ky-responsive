@@ -494,7 +494,7 @@ export function ArticleDetailPage({
             MỤC "CÁC BÀI VIẾT LIÊN QUAN" (RELATED ARTICLES)
             ========================================================================= */}
         {relatedArticles.length > 0 && (
-          <section style={{ marginTop: "48px", marginBottom: "60px" }}>
+          <section className="related-articles-section" style={{ marginTop: "48px", marginBottom: "60px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px" }}>
               <div>
                 <h3 style={{ fontSize: "22px", fontWeight: "800", color: "#0f172a", margin: "0 0 6px" }}>
@@ -507,6 +507,7 @@ export function ArticleDetailPage({
             </div>
 
             <div
+              className="related-articles-grid"
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
@@ -516,6 +517,7 @@ export function ArticleDetailPage({
               {relatedArticles.map((rel) => (
                 <div
                   key={rel.id}
+                  className="related-article-card"
                   onClick={() => onSelectArticle(rel)}
                   style={{
                     background: "#ffffff",
