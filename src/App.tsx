@@ -647,15 +647,6 @@ function Hero() {
         </div>
 
         <div className="hero__visual-wrapper reveal reveal-delay-2">
-          {/* Glassmorphism Badge trên ảnh */}
-          <div className="hero__badge hero__badge--top">
-            <span className="hero__badge-icon">🌱</span>
-            <div className="hero__badge-text">
-              <strong>Can thiệp 1:1 cá nhân hóa</strong>
-              <small>Giáo án IEP theo thế mạnh riêng</small>
-            </div>
-          </div>
-
           <figure
             className="hero__visual"
             onClick={() => {
@@ -669,19 +660,30 @@ function Hero() {
               src={image}
               alt="Không gian học tập ấm áp với vật liệu gỗ tự nhiên"
             />
-            <figcaption>
-              🔍 Bấm để khám phá cơ sở vật chất phòng học của trung tâm
-            </figcaption>
           </figure>
 
-          {/* Glassmorphism Badge dưới ảnh */}
-          <div className="hero__badge hero__badge--bottom">
-            <span className="hero__badge-icon">⭐</span>
-            <div className="hero__badge-text">
-              <strong>10+ Năm đồng hành cùng trẻ</strong>
-              <small>Trung tâm Cô Hương • Hưng Yên</small>
+          {/* Badges điểm nhấn tin cậy chuẩn Almond: Nằm gọn gàng phía dưới ảnh để 100% diện tích tranh không bị che lấp */}
+          <div className="hero__badges-row">
+            <div className="hero__badge">
+              <span className="hero__badge-icon">🌱</span>
+              <div className="hero__badge-text">
+                <strong>Can thiệp 1:1 cá nhân hóa</strong>
+                <small>Giáo án IEP theo thế mạnh riêng</small>
+              </div>
+            </div>
+
+            <div className="hero__badge">
+              <span className="hero__badge-icon">⭐</span>
+              <div className="hero__badge-text">
+                <strong>10+ Năm đồng hành cùng trẻ</strong>
+                <small>Trung tâm Cô Hương • Hưng Yên</small>
+              </div>
             </div>
           </div>
+
+          <figcaption className="hero__visual-caption">
+            🔍 Bấm vào ảnh để khám phá cơ sở vật chất phòng học của trung tâm
+          </figcaption>
         </div>
       </div>
     </main>
