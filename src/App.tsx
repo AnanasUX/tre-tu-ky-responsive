@@ -4,6 +4,7 @@ import {
   ReactNode,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react"
@@ -23,6 +24,10 @@ import { TeacherDetailModal, type TeacherData, getTeacherExtraDetails } from "./
 import { LiveChatWidget } from "./LiveChatWidget"
 import { DevelopmentalScreener } from "./DevelopmentalScreener"
 import { sendLeadToGoogleSheets } from "./services/googleSheetsService"
+import { InterventionComparison } from "./InterventionComparison"
+import { ArticleModal, type ArticleData } from "./ArticleModal"
+import { SAMPLE_ARTICLES } from "./articlesData"
+import { A11yToolbar } from "./A11yToolbar"
 
 const LandingConfigContext = createContext<LandingPageConfig>(initialLandingPageConfig)
 const useConfig = () => useContext(LandingConfigContext)
@@ -607,7 +612,7 @@ function Hero() {
       </div>
 
       <div className="container hero__grid">
-        <div className="hero__content reveal">
+        <div className="hero__content">
           <span className="eyebrow">{eyebrow}</span>
           <h1>{title}</h1>
           <p>{description}</p>
@@ -646,7 +651,7 @@ function Hero() {
           </div>
         </div>
 
-        <div className="hero__visual-wrapper reveal reveal-delay-2">
+        <div className="hero__visual-wrapper">
           <figure
             className="hero__visual"
             onClick={() => {
@@ -1227,27 +1232,41 @@ function Resources() {
   const section = getSection(config, "resources")
   if (section && !section.enabled) return null
 
-  const eyebrow = section?.eyebrow ?? "Góc chia sẻ kiến thức hữu ích cho ba mẹ"
-  const title = section?.title ?? "Tài nguyên cho phụ huynh"
+  const eyebrow = section?.eyebrow ?? "Góc chia sẻ kiến thức khoa học & thực hành cho ba mẹ"
+  const title = section?.title ?? "Cẩm nang & Tài nguyên Đồng hành"
   const description =
     section?.description ??
-    "Các tiêu đề dưới đây là nội dung mẫu. Bài viết chỉ xuất hiện sau khi được xác minh nguồn và duyệt nội dung."
+    "Tổng hợp các bài viết hướng dẫn chuyên sâu từ ThS. Hoàng Thị Hương và ban chuyên môn về âm ngữ, hành vi ABA, điều hòa giác quan và kỹ năng hòa nhập."
 
-  const defaultResources = [
-    { image: "./images/classroom-detail.jpg", tag: "Không gian", title: "5 cách bố trí góc học tập cho trẻ", text: "Gợi ý đơn giản để tạo một góc học tập yên tĩnh, thân thiện và dễ duy trì tại nhà." },
-    { image: "./images/family-3.jpg", tag: "Đồng hành", title: "Kỹ năng chuyển giao về nhà", text: "Cùng trẻ tiếp tục kỹ năng đã học qua những hoạt động gần gũi hàng ngày." },
-    { image: "./images/family-1.jpg", tag: "Cảm xúc", title: "Những điều nên trao đổi khi đón trẻ", text: "Một vài câu hỏi mở giúp cha mẹ hiểu ngày của con mà không tạo áp lực." },
-  ]
+  const [selectedCategory, setSelectedCategory] = useState<string>("Tất cả")
+  const [searchQuery, setSearchQuery] = useState<string>("")
+  const [readingArticle, setReadingArticle] = useState<ArticleData | null>(null)
 
-  const fallbackImages = ["./images/classroom-detail.jpg", "./images/family-3.jpg", "./images/family-1.jpg"]
-  const items = section?.items && section.items.length > 0
-    ? section.items.map((item, idx) => ({
-        image: fallbackImages[idx % fallbackImages.length],
-        tag: item.meta || "Tài nguyên",
-        title: item.title,
-        text: item.description ?? "",
-      }))
-    : defaultResources
+  const categories = ["Tất cả", "Âm ngữ trị liệu", "Hành vi ABA", "Điều hòa giác quan", "Can thiệp 1:1", "Tiền tiểu học", "Kỹ năng gia đình"]
+
+  const filteredArticles = useMemo(() => {
+    return SAMPLE_ARTICLES.filter((art) => {
+      const matchCat = selectedCategory === "Tất cả" || art.category === selectedCategory
+      const matchSearch =
+        !searchQuery.trim() ||
+        art.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        art.summary.toLowerCase().includes(searchQuery.toLowerCase())
+      return matchCat && matchSearch
+    })
+  }, [selectedCategory, searchQuery])
+
+  const handleConsultTopic = (topic: string) => {
+    const contactSection = document.querySelector("#contact")
+    if (contactSection) {
+      contactSection.scrollIntoView({ behavior: "smooth" })
+      setTimeout(() => {
+        const messageInput = document.querySelector('textarea[name="message"]') as HTMLTextAreaElement
+        if (messageInput) {
+          messageInput.value = `Gia đình đã đọc bài viết: "${topic}". Mong được Cô Hương liên hệ tư vấn chuyên sâu.`
+        }
+      }, 500)
+    }
+  }
 
   return (
     <section className="section" id="resources">
@@ -1257,23 +1276,108 @@ function Resources() {
           title={title}
           description={description}
         />
-        <div className="card-grid">
-          {items.map((item, idx) => (
-            <article className={`resource-card reveal reveal-delay-${(idx % 3) + 1}`} key={`${item.title}-${idx}`}>
-              <div className="card-media">
-                <img src={item.image} alt="Hình minh hoạ cho chủ đề bài viết" />
-                <span className="media-note">Cẩm nang đồng hành</span>
-              </div>
-              <div>
-                <span className="resource-card__tag">{item.tag}</span>
-                <h3>{item.title}</h3>
-                <p>{item.text}</p>
-                <a href="#contact" className="text-link">Đọc chi tiết & Đăng ký tư vấn →</a>
-              </div>
-            </article>
-          ))}
+
+        {/* Thanh tìm kiếm & Bộ lọc thông minh */}
+        <div className="resources-filter-container">
+          <div className="resources-search-box">
+            <input
+              type="text"
+              placeholder="🔍 Tìm bài viết theo từ khóa (chậm nói, ABA, ăn vạ, giác quan...)"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                style={{
+                  position: "absolute",
+                  right: "12px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#94a3b8",
+                  fontSize: "16px",
+                }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          <div className="resources-category-chips">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                className={`category-chip ${selectedCategory === cat ? "active" : ""}`}
+                onClick={() => setSelectedCategory(cat)}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {/* Danh sách bài viết */}
+        {filteredArticles.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "40px 20px", color: "#64748b" }}>
+            <p>Không tìm thấy bài viết nào phù hợp với từ khóa "{searchQuery}".</p>
+            <button
+              type="button"
+              className="button button--secondary"
+              onClick={() => {
+                setSearchQuery("")
+                setSelectedCategory("Tất cả")
+              }}
+              style={{ marginTop: "12px" }}
+            >
+              Xem tất cả bài viết
+            </button>
+          </div>
+        ) : (
+          <div className="card-grid">
+            {filteredArticles.map((item, idx) => (
+              <article
+                className={`resource-card reveal reveal-delay-${(idx % 3) + 1}`}
+                key={item.id}
+                onClick={() => setReadingArticle(item)}
+                style={{ cursor: "pointer" }}
+              >
+                <div className="card-media">
+                  <img src={item.image} alt={item.title} />
+                  <span className="media-note">⏱️ {item.readTime} đọc</span>
+                </div>
+                <div>
+                  <span className="resource-card__tag">{item.category}</span>
+                  <h3>{item.title}</h3>
+                  <p>{item.summary}</p>
+                  <button
+                    type="button"
+                    className="text-link"
+                    style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontWeight: 700 }}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setReadingArticle(item)
+                    }}
+                  >
+                    Đọc toàn bộ bài viết →
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
       </div>
+
+      {/* Reader Modal */}
+      <ArticleModal
+        article={readingArticle}
+        onClose={() => setReadingArticle(null)}
+        onConsult={handleConsultTopic}
+      />
     </section>
   )
 }
@@ -1474,40 +1578,74 @@ function Contact() {
                   disabled={submitting}
                 />
               </div>
-              <div className="form-field">
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-                  <label htmlFor="phone" style={{ margin: 0 }}>
-                    Số Zalo liên hệ <span style={{ color: "var(--primary)" }}>*</span>
-                  </label>
-                  <span style={{ fontSize: "11.5px", color: "#16a34a", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "4px" }}>
-                    🔒 Cam kết bảo mật 100%
-                  </span>
+              <div className="form-row-2col">
+                <div className="form-field">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                    <label htmlFor="phone" style={{ margin: 0 }}>
+                      Số Zalo liên hệ <span style={{ color: "var(--primary)" }}>*</span>
+                    </label>
+                  </div>
+                  <input
+                    id="phone"
+                    name="phone"
+                    placeholder={phone ? `Ví dụ: ${phone}` : "Ví dụ: 096 290 3942"}
+                    required
+                    type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9\s.-]*"
+                    autoComplete="tel"
+                    disabled={submitting}
+                  />
                 </div>
-                <input
-                  id="phone"
-                  name="phone"
-                  placeholder={phone ? `Ví dụ: ${phone}` : "Ví dụ: 096 290 3942"}
-                  required
-                  type="tel"
-                  inputMode="numeric"
-                  pattern="[0-9\s.-]*"
-                  autoComplete="tel"
-                  disabled={submitting}
-                />
+
+                <div className="form-field">
+                  <label htmlFor="childAge">Độ tuổi của con</label>
+                  <select id="childAge" name="childAge" disabled={submitting}>
+                    <option value="12-18 tháng">12 – 18 tháng</option>
+                    <option value="18-24 tháng" selected>18 – 24 tháng (Giai đoạn vàng)</option>
+                    <option value="2-3 tuổi">2 – 3 tuổi</option>
+                    <option value="3-5 tuổi">3 – 5 tuổi</option>
+                    <option value="Trên 5 tuổi">Trên 5 tuổi (Tiền tiểu học)</option>
+                  </select>
+                </div>
               </div>
+
+              <div className="form-row-2col">
+                <div className="form-field">
+                  <label htmlFor="need">Chương trình quan tâm</label>
+                  <select id="need" name="need" disabled={submitting}>
+                    <option value="Can thiệp 1:1 cá nhân hóa">Can thiệp 1:1 cá nhân hóa</option>
+                    <option value="Lớp bán trú Tiền tiểu học hòa nhập">Lớp bán trú Tiền tiểu học</option>
+                    <option value="Âm ngữ trị liệu chuyên sâu">Âm ngữ trị liệu chuyên sâu</option>
+                    <option value="Điều hòa giác quan & vận động">Điều hòa giác quan & vận động</option>
+                    <option value="Hướng dẫn phụ huynh tại nhà">Hướng dẫn phụ huynh tại nhà</option>
+                    <option value="Đánh giá phát triển ban đầu (Miễn phí)">Đánh giá phát triển ban đầu (Miễn phí)</option>
+                  </select>
+                </div>
+
+                <div className="form-field">
+                  <label htmlFor="timeSlot">Khung giờ hẹn mong muốn</label>
+                  <select id="timeSlot" name="timeSlot" disabled={submitting}>
+                    <option value="Sáng: 08:30 - 10:00">Ca Sáng: 08:30 – 10:00</option>
+                    <option value="Chiều: 14:00 - 15:30">Ca Chiều: 14:00 – 15:30</option>
+                    <option value="Cuối tuần: Thứ 7">Cuối tuần: Thứ 7</option>
+                    <option value="Linh hoạt giờ nào cũng được">Linh hoạt theo lịch Cô Hương</option>
+                  </select>
+                </div>
+              </div>
+
               <div className="form-field">
                 <label htmlFor="message">
-                  Độ tuổi & Biểu hiện của con (chậm nói, khó giao tiếp, ăn vạ...) <span style={{ color: "var(--primary)" }}>*</span>
+                  Biểu hiện của con (chậm nói, khó giao tiếp, ăn vạ...) <span style={{ color: "var(--primary)" }}>*</span>
                 </label>
                 <textarea
                   id="message"
                   name="message"
                   required
-                  placeholder="Ví dụ: Bé 2 tuổi rưỡi, chưa nói được từ đơn, gọi tên không quay đầu, hay đi nhón chân..."
+                  placeholder="Ví dụ: Bé 2 tuổi, gọi tên ít quay lại, chưa nói từ đơn, hay đi nhón chân..."
                   rows={3}
                   disabled={submitting}
                 />
-                <input type="hidden" name="need" value="Can thiệp sớm & đánh giá phát triển" />
               </div>
               <label className="checkbox">
                 <input
@@ -2014,6 +2152,7 @@ export default function App() {
       <Mission />
       <Areas />
       <DevelopmentalScreener />
+      <InterventionComparison />
       <Process />
       {!hideTeam && <Team hideTeam={hideTeam} />}
       <Space />
@@ -2021,6 +2160,7 @@ export default function App() {
       <Faq />
       <Contact />
       <Footer hideTeam={hideTeam} />
+      <A11yToolbar />
       <FloatingContactBar
         phone={config.phone || "096 290 3942"}
         facebook={config.facebook || "https://www.facebook.com/chanh.chua.330"}
