@@ -152,9 +152,19 @@ function Icon({ name, size = 22 }: { name: IconName; size?: number }) {
 
 function Logo({ light = false }: { light?: boolean }) {
   const config = useConfig()
+  const hasCustomLogo = config.logo && !config.logo.includes("brand-logo.png")
   return (
     <div className={`logo ${light ? "logo--light" : ""}`}>
-      <span className="logo__mark" aria-hidden="true" />
+      {hasCustomLogo ? (
+        <img
+          src={config.logo}
+          alt={config.siteName || "Logo"}
+          className="logo__mark"
+          style={{ objectFit: "contain" }}
+        />
+      ) : (
+        <span className="logo__mark" aria-hidden="true" />
+      )}
       <span className="logo__copy">
         <strong>{config.siteName || "Lớp Can Thiệp Chuyên Biệt Cô Hương"}</strong>
       </span>
@@ -584,7 +594,7 @@ function Hero() {
     "Không gian kết nối dành cho trẻ và phụ huynh, nơi mỗi khác biệt được lắng nghe, mỗi bước tiến được ghi nhận, và hành trình phát triển được xây dựng bằng sự thấu hiểu."
   const primaryAction = section?.primaryAction ?? "Đăng ký tư vấn"
   const secondaryAction = section?.secondaryAction ?? "Tìm hiểu phương pháp"
-  const image = section?.image && section.image.startsWith("./") ? section.image : "./images/classroom-main.jpg"
+  const image = section?.image && section.image.trim() !== "" ? section.image : "./images/classroom-main.jpg"
 
   return (
     <main className="hero" id="top" style={{ position: "relative" }}>
@@ -1135,7 +1145,7 @@ function Space() {
   const galleryImages: LightboxImage[] =
     section?.items && section.items.length > 0
       ? section.items.map((item, idx) => ({
-          src: item.meta || (idx === 1 ? "./images/classroom-detail.jpg" : "./images/classroom-main.jpg"),
+          src: item.image || item.meta || (idx === 1 ? "./images/classroom-detail.jpg" : "./images/classroom-main.jpg"),
           caption: item.title || "Không gian học tập can thiệp chuyên sâu",
           alt: item.title,
         }))
