@@ -346,7 +346,9 @@ function Header({
         >
           {(hideTeam ? config.navigation.filter((item) => item.path !== "#team") : config.navigation).map((item, index) => {
             const sectionId = item.path.replace("#", "")
-            const isActive = activeSection === sectionId || (!activeSection && index === 0)
+            const isActive =
+              activeSection === sectionId ||
+              ((!activeSection || activeSection === "about" || activeSection === "top") && (sectionId === "about" || index === 0))
             return (
               <a
                 key={`${item.path}-${index}`}
@@ -602,8 +604,8 @@ function Hero() {
   const image = section?.image && section.image.trim() !== "" ? section.image : "./images/classroom-main.jpg"
 
   return (
-    <main className="hero" id="top" style={{ position: "relative" }}>
-      <div id="about" style={{ position: "absolute", top: 0, left: 0, width: "1px", height: "1px", pointerEvents: "none", opacity: 0 }} />
+    <main className="hero" id="about" style={{ position: "relative" }}>
+      <div id="top" style={{ position: "absolute", top: 0, left: 0, width: "1px", height: "1px", pointerEvents: "none", opacity: 0 }} />
       {/* Quả cầu ánh sáng nền mềm mại (Ambient Floating Blobs) */}
       <div className="hero__ambient-container" aria-hidden="true">
         <div className="hero__ambient-blob hero__ambient-blob--purple" />
@@ -1921,15 +1923,15 @@ function useScrollEffects(dep: any, hideTeam = false) {
 
       if (isNavigatingRef.current) return
 
-      // Khi vị trí cuộn ở vùng đầu trang (< 350px) hoặc đỉnh #areas vẫn còn ở dưới ngưỡng đọc (> 140px):
-      // Tuyệt đối LUÔN LUÔN là "about" ("Giới thiệu"), ngăn chặn 100% việc nhảy nhầm sang "gallery" ("Không gian")
-      if (scroll < 350) {
+      // Khi vị trí cuộn ở vùng đầu trang (< 450px) hoặc đỉnh #areas vẫn còn ở dưới ngưỡng đọc (> 120px):
+      // Tuyệt đối LUÔN LUÔN là "about" ("Giới thiệu"), ngăn chặn 100% việc nhảy nhầm sang các mục khác
+      if (scroll < 450) {
         setActiveSection("about")
         return
       }
 
       const areasEl = document.getElementById("areas")
-      if (areasEl && areasEl.getBoundingClientRect().top > 140) {
+      if (areasEl && areasEl.getBoundingClientRect().top > 120) {
         setActiveSection("about")
         return
       }
@@ -1980,55 +1982,57 @@ function useScrollEffects(dep: any, hideTeam = false) {
     window.addEventListener("resize", handleNativeScroll, { passive: true })
 
     // Xử lý vị trí ban đầu khi người dùng vào trang / reload:
-    // Nếu vào URL có #about hoặc #top (hoặc không có hash), hệ thống phải chuyển đến đầu trang
-    const currentHash = window.location.hash.toLowerCase()
-    const isAboutOrTop = !currentHash || currentHash.startsWith("#about") || currentHash.startsWith("#top")
+    // Theo yêu cầu: Khi reload hoặc mới vào trang thì PHẢI luôn cuộn lên đầu trang và chọn mục "Giới thiệu" (#about)
+    try {
+      if (window.location.hash && window.location.hash !== "#about" && window.location.hash !== "#top") {
+        window.history.replaceState(null, "", window.location.pathname + window.location.search + "#about")
+      }
+    } catch {}
 
-    if (isAboutOrTop) {
-      isNavigatingRef.current = true
-      setActiveSection("about")
+    isNavigatingRef.current = true
+    setActiveSection("about")
+    window.scrollTo(0, 0)
+    if (document.documentElement) document.documentElement.scrollTop = 0
+    if (document.body) document.body.scrollTop = 0
+    lenis.scrollTo(0, { immediate: true })
+
+    // Chống giật & đảm bảo sau khi render / tải font / reflow dữ liệu cloud xong vẫn cố định "Giới thiệu" ở đầu trang
+    requestAnimationFrame(() => {
       window.scrollTo(0, 0)
-      if (document.documentElement) document.documentElement.scrollTop = 0
-      if (document.body) document.body.scrollTop = 0
       lenis.scrollTo(0, { immediate: true })
+      setActiveSection("about")
+    })
 
-      // Chống giật & đảm bảo sau khi render / tải font / reflow dữ liệu cloud xong vẫn cố định ở đầu trang
-      requestAnimationFrame(() => {
-        window.scrollTo(0, 0)
-        lenis.scrollTo(0, { immediate: true })
-        setActiveSection("about")
-      })
-      setTimeout(() => {
-        window.scrollTo(0, 0)
-        lenis.scrollTo(0, { immediate: true })
-        setActiveSection("about")
-      }, 100)
-      setTimeout(() => {
-        window.scrollTo(0, 0)
-        lenis.scrollTo(0, { immediate: true })
-        setActiveSection("about")
-      }, 350)
-      setTimeout(() => {
-        window.scrollTo(0, 0)
-        lenis.scrollTo(0, { immediate: true })
-        setActiveSection("about")
-        isNavigatingRef.current = false // Mở khóa điều hướng sau khi toàn bộ ảnh & reflow ổn định
-      }, 800)
-    } else {
-      // Nếu là các anchor sâu cụ thể khác (#resources, #faq, #contact, #areas, #process, #team, #gallery)
-      setTimeout(() => {
-        try {
-          const targetEl = document.querySelector(window.location.hash)
-          if (targetEl) {
-            lenis.scrollTo(targetEl, { offset: -74, duration: 1.2 })
-            const cleanId = window.location.hash.replace("#", "")
-            setActiveSection(cleanId)
-          }
-        } catch {}
-      }, 350)
-    }
+    const timer1 = setTimeout(() => {
+      window.scrollTo(0, 0)
+      lenis.scrollTo(0, { immediate: true })
+      setActiveSection("about")
+    }, 100)
+
+    const timer2 = setTimeout(() => {
+      window.scrollTo(0, 0)
+      lenis.scrollTo(0, { immediate: true })
+      setActiveSection("about")
+    }, 350)
+
+    const timer3 = setTimeout(() => {
+      window.scrollTo(0, 0)
+      lenis.scrollTo(0, { immediate: true })
+      setActiveSection("about")
+    }, 700)
+
+    const timer4 = setTimeout(() => {
+      window.scrollTo(0, 0)
+      lenis.scrollTo(0, { immediate: true })
+      setActiveSection("about")
+      isNavigatingRef.current = false // Mở khóa điều hướng sau khi toàn bộ ảnh & reflow ổn định
+    }, 1200)
 
     return () => {
+      clearTimeout(timer1)
+      clearTimeout(timer2)
+      clearTimeout(timer3)
+      clearTimeout(timer4)
       lenis.destroy()
       lenisRef.current = null
       delete (window as any).__lenis

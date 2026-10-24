@@ -73,18 +73,19 @@
       ]
     }
     </script>
-    <!-- Khóa phục hồi cuộn tự động và cưỡng bức về đầu trang khi vào với #about / #top -->
+    <!-- Khóa phục hồi cuộn tự động và cưỡng bức về đầu trang khi reload hoặc mới vào trang -->
     <script>
       try {
         if ('scrollRestoration' in history) {
           history.scrollRestoration = 'manual';
         }
-        var h = window.location.hash.toLowerCase();
-        if (!h || h.indexOf('#about') === 0 || h.indexOf('#top') === 0) {
-          window.scrollTo(0, 0);
-          if (document.documentElement) document.documentElement.scrollTop = 0;
-          if (document.body) document.body.scrollTop = 0;
+        // Xóa ngay hash anchor trước khi trình duyệt parse DOM để chặn tuyệt đối việc nhảy xuống anchor cũ
+        if (window.location.hash && window.location.hash !== '#about' && window.location.hash !== '#top') {
+          history.replaceState(null, '', window.location.pathname + window.location.search);
         }
+        window.scrollTo(0, 0);
+        if (document.documentElement) document.documentElement.scrollTop = 0;
+        if (document.body) document.body.scrollTop = 0;
       } catch (e) {}
     </script>
   </head>
